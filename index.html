@@ -3,34 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyTrip</title>
+    <title>Tripline - Your trips, on a timeline</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --bg-tertiary: #e9ecef;
-            --text-primary: #000000;
-            --text-secondary: #6c757d;
-            --border-color: #dee2e6;
-            --accent: #000000;
-            --shadow: rgba(0, 0, 0, 0.1);
-            --restaurant-color: #000000;
-            --activity-color: #6c757d;
+            /* Bleus Tripline */
+            --primary-blue: #0A66C2;
+            --light-blue: #E7F3FF;
+            --dark-blue: #064789;
+            --accent-blue: #3B82F6;
+            
+            /* Neutres */
+            --white: #FFFFFF;
+            --off-white: #F8FAFC;
+            --light-gray: #E2E8F0;
+            --gray: #64748B;
+            --dark: #1E293B;
+            
+            /* Accents */
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            
+            /* Mapping pour compatibilité */
+            --bg-primary: var(--white);
+            --bg-secondary: var(--off-white);
+            --bg-tertiary: var(--light-gray);
+            --text-primary: var(--dark);
+            --text-secondary: var(--gray);
+            --border-color: var(--light-gray);
+            --accent: var(--primary-blue);
+            --shadow: rgba(10, 102, 194, 0.1);
+            --restaurant-color: var(--primary-blue);
+            --activity-color: var(--accent-blue);
         }
 
         [data-theme="dark"] {
-            --bg-primary: #0d0d0d;
-            --bg-secondary: #1a1a1a;
-            --bg-tertiary: #2a2a2a;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border-color: #3a3a3a;
-            --accent: #ffffff;
-            --shadow: rgba(255, 255, 255, 0.05);
-            --restaurant-color: #ffffff;
-            --activity-color: #a0a0a0;
+            --primary-blue: #3B82F6;
+            --light-blue: #1E3A5F;
+            --dark-blue: #93C5FD;
+            --accent-blue: #60A5FA;
+            
+            --white: #0F172A;
+            --off-white: #1E293B;
+            --light-gray: #334155;
+            --gray: #94A3B8;
+            --dark: #F1F5F9;
+            
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-tertiary: #334155;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border-color: #334155;
+            --accent: var(--primary-blue);
+            --shadow: rgba(59, 130, 246, 0.15);
+            --restaurant-color: var(--primary-blue);
+            --activity-color: var(--accent-blue);
         }
 
         * {
@@ -54,36 +84,64 @@
         }
 
         header {
-            background: var(--bg-secondary);
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            padding: 20px 16px;
+            border-bottom: 2px solid var(--primary-blue);
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(10px);
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
         }
 
         h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--primary-blue);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         .theme-toggle {
-            background: none;
-            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
             color: var(--text-primary);
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1.2rem;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--light-blue);
+            border-color: var(--primary-blue);
         }
 
         .theme-toggle:active {
@@ -93,32 +151,38 @@
         .dashboard {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            padding: 16px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+            padding: 20px 16px;
+            background: var(--off-white);
+            border-bottom: 2px solid var(--border-color);
         }
 
         .stat-card {
-            background: var(--bg-primary);
-            padding: 16px;
-            border: 1px solid var(--border-color);
+            background: var(--white);
+            padding: 20px;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary-blue);
         }
 
         .stat-card h3 {
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--text-secondary);
+            color: var(--gray);
             margin-bottom: 8px;
         }
 
         .stat-card .number {
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--primary-blue);
         }
 
         .tabs {
@@ -137,23 +201,29 @@
         }
 
         .tab {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: 6px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 600;
             white-space: nowrap;
             transition: all 0.2s;
             flex-shrink: 0;
         }
 
+        .tab:hover {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
         .tab.active {
-            background: var(--accent);
-            color: var(--bg-primary);
-            border-color: var(--accent);
+            background: var(--primary-blue);
+            color: var(--white);
+            border-color: var(--primary-blue);
         }
 
         .content-section {
@@ -174,18 +244,24 @@
         }
 
         .btn {
-            padding: 10px 16px;
-            border: 1px solid var(--border-color);
+            padding: 12px 20px;
+            border: 2px solid var(--border-color);
             background: var(--bg-primary);
             color: var(--text-primary);
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.2s;
             font-family: inherit;
             flex: 1;
             min-width: 120px;
+        }
+
+        .btn:hover {
+            background: var(--light-blue);
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
         }
 
         .btn:active {
@@ -193,9 +269,14 @@
         }
 
         .btn-primary {
-            background: var(--accent);
-            color: var(--bg-primary);
-            border-color: var(--accent);
+            background: var(--primary-blue);
+            color: var(--white);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background: var(--dark-blue);
+            border-color: var(--dark-blue);
         }
 
         .filter-section {
@@ -221,8 +302,8 @@
         }
 
         .item-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             padding: 16px;
             margin-bottom: 12px;
@@ -230,8 +311,13 @@
             transition: all 0.2s;
             overflow: hidden;
             display: flex;
-            gap: 12px;
+            flex-direction: column;
             position: relative;
+        }
+
+        .item-card:hover {
+            border-color: var(--primary-blue);
+            background: var(--light-blue);
         }
 
         .item-card:active {
@@ -239,32 +325,32 @@
         }
 
         .item-card.restaurant {
-            border-left: 3px solid var(--restaurant-color);
+            border-left: 4px solid var(--primary-blue);
         }
 
         .item-card.activity {
-            border-left: 3px solid var(--activity-color);
+            border-left: 4px solid var(--accent-blue);
         }
 
         /* Priority card backgrounds */
         .item-card.priority-must-do {
-            background: rgba(255, 68, 68, 0.1);
-            border-color: rgba(255, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.08);
+            border-color: var(--error);
         }
 
         [data-theme="dark"] .item-card.priority-must-do {
-            background: rgba(255, 68, 68, 0.15);
-            border-color: rgba(255, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--error);
         }
 
         .item-card.priority-high {
-            background: rgba(255, 136, 68, 0.1);
-            border-color: rgba(255, 136, 68, 0.3);
+            background: rgba(245, 158, 11, 0.08);
+            border-color: var(--warning);
         }
 
         [data-theme="dark"] .item-card.priority-high {
-            background: rgba(255, 136, 68, 0.15);
-            border-color: rgba(255, 136, 68, 0.4);
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--warning);
         }
 
         .item-card.priority-low {
@@ -275,6 +361,13 @@
         .item-card.priority-optional {
             background: var(--bg-secondary);
             opacity: 0.5;
+        }
+
+        .item-card-top {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            margin-bottom: 12px;
         }
 
         .item-content {
@@ -316,13 +409,13 @@
         }
 
         .priority-low-badge {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
+            background: var(--light-gray);
+            color: var(--gray);
         }
 
         .priority-optional-badge {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
+            background: var(--off-white);
+            color: var(--gray);
         }
 
         .item-header {
@@ -334,33 +427,34 @@
 
         .item-title {
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: -0.01em;
             margin-bottom: 4px;
+            color: var(--dark);
         }
 
         .item-city {
             font-size: 0.75rem;
-            color: var(--text-secondary);
+            color: var(--gray);
             font-weight: 500;
         }
 
         .badge {
             font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 600;
             white-space: nowrap;
         }
 
         .badge-reserved {
-            background: var(--accent);
-            color: var(--bg-primary);
+            background: var(--success);
+            color: var(--white);
         }
 
         .badge-not-reserved {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
+            background: var(--light-gray);
+            color: var(--gray);
         }
 
         .item-details {
@@ -397,27 +491,29 @@
         .card-actions {
             display: flex;
             gap: 8px;
-            margin-top: 8px;
+            margin-top: auto;
+            padding-top: 12px;
         }
 
         .maps-btn, .booking-btn {
             display: inline-block;
-            padding: 6px 12px;
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            background: var(--light-gray);
+            color: var(--dark);
+            border: 2px solid var(--border-color);
             border-radius: 6px;
             font-size: 0.875rem;
             text-decoration: none;
             transition: all 0.2s;
-            font-weight: 500;
+            font-weight: 600;
             flex: 1;
             text-align: center;
         }
 
-        .maps-btn:hover, .booking-btn:hover {
-            background: var(--bg-primary);
-            border-color: var(--text-secondary);
+        .maps-btn:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+            border-color: var(--primary-blue);
         }
 
         .maps-btn:active, .booking-btn:active {
@@ -425,24 +521,24 @@
         }
 
         .booking-btn {
-            background: #4CAF50;
+            background: var(--success);
             color: white;
-            border-color: #45a049;
+            border-color: var(--success);
         }
 
         .booking-btn:hover {
-            background: #45a049;
-            border-color: #3d8b40;
+            background: #059669;
+            border-color: #059669;
+        }
+
+        [data-theme="dark"] .maps-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         [data-theme="dark"] .booking-btn {
-            background: #2e7d32;
-            border-color: #1b5e20;
-        }
-
-        [data-theme="dark"] .booking-btn:hover {
-            background: #1b5e20;
-            border-color: #0d4714;
+            background: var(--success);
+            border-color: var(--success);
         }
 
         .address-link {
@@ -707,8 +803,13 @@
     <div class="container">
         <header>
             <div class="header-content">
-                <h1>MyTrip</h1>
-                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+                <div class="logo">
+                    <span class="logo-icon">✈️</span>
+                    <h1>Tripline</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+                </div>
             </div>
         </header>
 
@@ -1535,46 +1636,48 @@
 
                 return `
                     <div class="item-card ${item.type} ${item.priority && item.priority !== 'normal' ? 'priority-' + item.priority : ''}" data-item-id="${item.id}" onclick="showDetailById('${item.id}', '${item.type}')">
-                        <div class="item-content">
-                            <div class="item-header">
-                                <div>
-                                    <div class="item-title">
-                                        ${item.name}
-                                        ${getPriorityBadge(item.priority)}
+                        <div class="item-card-top">
+                            <div class="item-content">
+                                <div class="item-header">
+                                    <div>
+                                        <div class="item-title">
+                                            ${item.name}
+                                            ${getPriorityBadge(item.priority)}
+                                        </div>
+                                        <div class="item-city">${item.city}</div>
                                     </div>
-                                    <div class="item-city">${item.city}</div>
+                                    <span class="badge ${isBooked ? 'badge-reserved' : 'badge-not-reserved'}">
+                                        ${isBooked ? '✓' : '○'}
+                                    </span>
                                 </div>
-                                <span class="badge ${isBooked ? 'badge-reserved' : 'badge-not-reserved'}">
-                                    ${isBooked ? '✓' : '○'}
-                                </span>
+                                <div class="item-details">
+                                    ${price ? `<div class="item-detail"><strong>${price.toLocaleString()}¥</strong></div>` : ''}
+                                    ${isRestaurant && item.cuisine ? `<div class="item-detail">${item.cuisine}</div>` : ''}
+                                    ${!isRestaurant && item.category ? `<div class="item-detail">${item.category}</div>` : ''}
+                                    ${item.reservationDate ? `<div class="item-detail">📅 ${new Date(item.reservationDate).toLocaleDateString('fr-FR')}</div>` : ''}
+                                </div>
+                                ${item.notes ? `<div class="item-notes">${item.notes}</div>` : ''}
                             </div>
-                            <div class="item-details">
-                                ${price ? `<div class="item-detail"><strong>${price.toLocaleString()}¥</strong></div>` : ''}
-                                ${isRestaurant && item.cuisine ? `<div class="item-detail">${item.cuisine}</div>` : ''}
-                                ${!isRestaurant && item.category ? `<div class="item-detail">${item.category}</div>` : ''}
-                                ${item.reservationDate ? `<div class="item-detail">📅 ${new Date(item.reservationDate).toLocaleDateString('fr-FR')}</div>` : ''}
-                            </div>
-                            ${item.notes ? `<div class="item-notes">${item.notes}</div>` : ''}
-                            <div class="card-actions">
-                                ${item.googleMapsUrl ? `
-                                    <a href="${item.googleMapsUrl}" 
-                                       target="_blank" 
-                                       class="maps-btn"
-                                       onclick="event.stopPropagation()">
-                                        📍 Google Maps
-                                    </a>
-                                ` : ''}
-                                ${item.bookingUrl ? `
-                                    <a href="${item.bookingUrl}" 
-                                       target="_blank" 
-                                       class="booking-btn"
-                                       onclick="event.stopPropagation()">
-                                        🍽️ Réserver
-                                    </a>
-                                ` : ''}
-                            </div>
+                            ${item.photoUrl ? `<img src="${item.photoUrl}" alt="${item.name}" class="item-photo" onerror="this.style.display='none'">` : ''}
                         </div>
-                        ${item.photoUrl ? `<img src="${item.photoUrl}" alt="${item.name}" class="item-photo" onerror="this.style.display='none'">` : ''}
+                        <div class="card-actions">
+                            ${item.googleMapsUrl ? `
+                                <a href="${item.googleMapsUrl}" 
+                                   target="_blank" 
+                                   class="maps-btn"
+                                   onclick="event.stopPropagation()">
+                                    📍 Google Maps
+                                </a>
+                            ` : ''}
+                            ${item.bookingUrl ? `
+                                <a href="${item.bookingUrl}" 
+                                   target="_blank" 
+                                   class="booking-btn"
+                                   onclick="event.stopPropagation()">
+                                    🍽️ Réserver
+                                </a>
+                            ` : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
