@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyTrip - Trip Planner</title>
+    <title>Japan Trip Planner</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -707,7 +707,7 @@
     <div class="container">
         <header>
             <div class="header-content">
-                <h1>MyTrip - Trip Planner</h1>
+                <h1>🇯🇵 Trip Planner</h1>
                 <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
             </div>
         </header>
@@ -1856,31 +1856,12 @@
         }
 
         function exportData() {
-            fetch('data.json')
-                    .then(response => response.json())
-                    .then(data => {
-                
-                if (data.restaurants) {
-                    restaurants = data.restaurants.map(r => 
-                        new Restaurant(r.name, r.city, r.cuisine, r.priceRange, r.googleMapsUrl, r.photoUrl, r.tiktokLink, r.notes, r.isReserved, r.reservationDate, r.priority, r.bookingUrl, r.id)
-                    );
-                }
-                
-                if (data.activities) {
-                    activities = data.activities.map(a => 
-                        new Activity(a.name, a.city, a.category, a.date, a.time, a.duration, a.cost, a.googleMapsUrl, a.photoUrl, a.tiktokLink, a.notes, a.isBooked, a.reservationDate, a.priority, a.bookingUrl, a.id)
-                    );
-                }
-                
-                // Sauvegarder les données dans localStorage
-                saveData();
-                console.log('✅ Données chargées depuis data.json:', data.restaurants.length, 'restaurants,', data.activities.length, 'activités');
-                })
-                .catch(error => {
-                    console.error('❌ Erreur chargement data.json:', error);
-                    alert('Erreur: Impossible de charger data.json. Vérifiez que le fichier est dans le même dossier que index.html');
-                });
-
+            const data = {
+                restaurants: restaurants,
+                activities: activities,
+                exportDate: new Date().toISOString()
+            };
+            
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
