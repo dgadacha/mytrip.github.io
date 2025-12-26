@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTrip - Trip Planner</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #000000;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent: #000000;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --restaurant-color: #000000;
+            --activity-color: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-color: #3a3a3a;
+            --accent: #ffffff;
+            --shadow: rgba(255, 255, 255, 0.05);
+            --restaurant-color: #ffffff;
+            --activity-color: #a0a0a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        header {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .stat-card h3 {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .number {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .action-bar {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: inherit;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+        }
+
+        .filter-section {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            margin-bottom: 8px;
+        }
+
+        .items-list {
+            padding: 16px;
+        }
+
+        .item-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+            display: flex;
+            gap: 12px;
+            position: relative;
+        }
+
+        .item-card:active {
+            transform: scale(0.98);
+        }
+
+        .item-card.restaurant {
+            border-left: 3px solid var(--restaurant-color);
+        }
+
+        .item-card.activity {
+            border-left: 3px solid var(--activity-color);
+        }
+
+        /* Priority card backgrounds */
+        .item-card.priority-must-do {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+
+        [data-theme="dark"] .item-card.priority-must-do {
+            background: rgba(255, 68, 68, 0.15);
+            border-color: rgba(255, 68, 68, 0.4);
+        }
+
+        .item-card.priority-high {
+            background: rgba(255, 136, 68, 0.1);
+            border-color: rgba(255, 136, 68, 0.3);
+        }
+
+        [data-theme="dark"] .item-card.priority-high {
+            background: rgba(255, 136, 68, 0.15);
+            border-color: rgba(255, 136, 68, 0.4);
+        }
+
+        .item-card.priority-low {
+            background: var(--bg-secondary);
+            opacity: 0.7;
+        }
+
+        .item-card.priority-optional {
+            background: var(--bg-secondary);
+            opacity: 0.5;
+        }
+
+        .item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-photo {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .priority-must-do-badge {
+            background: #ff4444;
+            color: white;
+        }
+
+        .priority-high-badge {
+            background: #ff8844;
+            color: white;
+        }
+
+        .priority-normal-badge {
+            display: none;
+        }
+
+        .priority-low-badge {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .priority-optional-badge {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .item-title {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: 4px;
+        }
+
+        .item-city {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .badge-reserved {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .badge-not-reserved {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-detail {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-detail strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .item-notes {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .maps-btn, .booking-btn {
+            display: inline-block;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
+        }
+
+        .maps-btn:hover, .booking-btn:hover {
+            background: var(--bg-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .maps-btn:active, .booking-btn:active {
+            transform: scale(0.95);
+        }
+
+        .booking-btn {
+            background: #4CAF50;
+            color: white;
+            border-color: #45a049;
+        }
+
+        .booking-btn:hover {
+            background: #45a049;
+            border-color: #3d8b40;
+        }
+
+        [data-theme="dark"] .booking-btn {
+            background: #2e7d32;
+            border-color: #1b5e20;
+        }
+
+        [data-theme="dark"] .booking-btn:hover {
+            background: #1b5e20;
+            border-color: #0d4714;
+        }
+
+        .address-link {
+            color: var(--text-primary);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .address-link:active {
+            opacity: 0.7;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            margin: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .form-actions {
+            position: sticky;
+            bottom: 0;
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+
+        .detail-modal .modal-content {
+            max-width: 600px;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .detail-section .value {
+            font-size: 1rem;
+            color: var(--text-primary);
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+        .detail-photo {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .tiktok-preview {
+            width: 100%;
+            aspect-ratio: 9/16;
+            max-height: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+        }
+
+        /* Calendar styles */
+        .calendar-day {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .calendar-day-header {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .calendar-day-date {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .calendar-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .calendar-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .sort-controls {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .sort-controls label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            header {
+                padding: 24px 32px;
+            }
+
+            .dashboard {
+                grid-template-columns: repeat(4, 1fr);
+                padding: 24px 32px;
+            }
+
+            .tabs {
+                padding: 16px 32px;
+            }
+
+            .items-list {
+                padding: 24px 32px;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: 16px;
+            }
+
+            .item-card {
+                margin-bottom: 0;
+            }
+
+            .modal-content {
+                max-width: 600px;
+                margin: 40px auto;
+                min-height: auto;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>MyTrip - Trip Planner</h1>
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+            </div>
+        </header>
+
+        <div class="dashboard" id="dashboard">
+            <div class="stat-card">
+                <h3>Restaurants</h3>
+                <div class="number" id="totalRestaurants">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Activités</h3>
+                <div class="number" id="totalActivities">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Budget</h3>
+                <div class="number" id="totalBudget">0¥</div>
+            </div>
+            <div class="stat-card">
+                <h3>Réservés</h3>
+                <div class="number" id="totalReservations">0</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('all')">Tout</button>
+            <button class="tab" onclick="switchTab('restaurants')">Restaurants</button>
+            <button class="tab" onclick="switchTab('activities')">Activités</button>
+            <button class="tab" onclick="switchTab('calendar')">📅 Calendrier</button>
+            <button class="tab" onclick="switchTab('by-city')">Par Ville</button>
+        </div>
+
+        <div class="action-bar">
+            <button class="btn btn-primary" onclick="openModal('restaurant')">+ Restaurant</button>
+            <button class="btn btn-primary" onclick="openModal('activity')">+ Activité</button>
+            <button class="btn" onclick="exportData()">💾 Export</button>
+            <button class="btn" onclick="importData()">📥 Import</button>
+            <button class="btn" onclick="clearAllData()">🗑️ Vider</button>
+        </div>
+
+        <div class="filter-section">
+            <select id="cityFilter" onchange="filterItems()">
+                <option value="">Toutes les villes</option>
+                <optgroup label="Tokyo">
+                    <option value="Tokyo">Tokyo (toute la ville)</option>
+                    <option value="Tokyo - Shibuya">Tokyo - Shibuya</option>
+                    <option value="Tokyo - Shinjuku">Tokyo - Shinjuku</option>
+                    <option value="Tokyo - Ikebukuro">Tokyo - Ikebukuro</option>
+                    <option value="Tokyo - Ginza">Tokyo - Ginza</option>
+                    <option value="Tokyo - Harajuku">Tokyo - Harajuku</option>
+                    <option value="Tokyo - Akihabara">Tokyo - Akihabara</option>
+                    <option value="Tokyo - Asakusa">Tokyo - Asakusa</option>
+                    <option value="Tokyo - Roppongi">Tokyo - Roppongi</option>
+                    <option value="Tokyo - Odaiba">Tokyo - Odaiba</option>
+                </optgroup>
+                <optgroup label="Sapporo">
+                    <option value="Sapporo">Sapporo (toute la ville)</option>
+                    <option value="Sapporo - Susukino">Sapporo - Susukino</option>
+                    <option value="Sapporo - Odori">Sapporo - Odori</option>
+                    <option value="Sapporo - Tanukikoji">Sapporo - Tanukikoji</option>
+                </optgroup>
+                <optgroup label="Seoul">
+                    <option value="Seoul">Seoul (toute la ville)</option>
+                    <option value="Seoul - Gangnam">Seoul - Gangnam</option>
+                    <option value="Seoul - Hongdae">Seoul - Hongdae</option>
+                    <option value="Seoul - Myeongdong">Seoul - Myeongdong</option>
+                    <option value="Seoul - Itaewon">Seoul - Itaewon</option>
+                    <option value="Seoul - Insadong">Seoul - Insadong</option>
+                </optgroup>
+            </select>
+            <input type="text" id="searchInput" placeholder="Rechercher..." oninput="filterItems()">
+        </div>
+
+        <div class="sort-controls">
+            <label>Trier par:</label>
+            <select id="sortBy" onchange="sortItems()">
+                <option value="none">Défaut</option>
+                <option value="priority">Priorité (Must-Do → Optionnel)</option>
+                <option value="price-asc">Prix croissant</option>
+                <option value="price-desc">Prix décroissant</option>
+                <option value="name">Nom A-Z</option>
+            </select>
+        </div>
+
+        <div id="allContent" class="content-section active">
+            <div class="items-list" id="allItems"></div>
+        </div>
+
+        <div id="restaurantsContent" class="content-section">
+            <div class="items-list" id="restaurantItems"></div>
+        </div>
+
+        <div id="activitiesContent" class="content-section">
+            <div class="items-list" id="activityItems"></div>
+        </div>
+
+        <div id="calendarContent" class="content-section">
+            <div id="calendarView"></div>
+        </div>
+
+        <div id="byCityContent" class="content-section">
+            <div class="items-list" id="cityView"></div>
+        </div>
+    </div>
+
+    <!-- Modal Form -->
+    <div id="formModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Ajouter un Restaurant</h2>
+                <button class="close-btn" onclick="closeModal('formModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="itemForm">
+                    <input type="hidden" id="itemId">
+                    <input type="hidden" id="itemType">
+
+                    <div class="form-group">
+                        <label for="itemName">Nom *</label>
+                        <input type="text" id="itemName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="itemCity">Ville *</label>
+                        <select id="itemCity" required>
+                            <option value="">Sélectionner...</option>
+                            <optgroup label="Tokyo">
+                                <option value="Tokyo">Tokyo (général)</option>
+                                <option value="Tokyo - Shibuya">Tokyo - Shibuya</option>
+                                <option value="Tokyo - Shinjuku">Tokyo - Shinjuku</option>
+                                <option value="Tokyo - Ikebukuro">Tokyo - Ikebukuro</option>
+                                <option value="Tokyo - Ginza">Tokyo - Ginza</option>
+                                <option value="Tokyo - Harajuku">Tokyo - Harajuku</option>
+                                <option value="Tokyo - Akihabara">Tokyo - Akihabara</option>
+                                <option value="Tokyo - Asakusa">Tokyo - Asakusa</option>
+                                <option value="Tokyo - Roppongi">Tokyo - Roppongi</option>
+                                <option value="Tokyo - Odaiba">Tokyo - Odaiba</option>
+                            </optgroup>
+                            <optgroup label="Sapporo">
+                                <option value="Sapporo">Sapporo (général)</option>
+                                <option value="Sapporo - Susukino">Sapporo - Susukino</option>
+                                <option value="Sapporo - Odori">Sapporo - Odori</option>
+                                <option value="Sapporo - Tanukikoji">Sapporo - Tanukikoji</option>
+                            </optgroup>
+                            <optgroup label="Seoul">
+                                <option value="Seoul">Seoul (général)</option>
+                                <option value="Seoul - Gangnam">Seoul - Gangnam</option>
+                                <option value="Seoul - Hongdae">Seoul - Hongdae</option>
+                                <option value="Seoul - Myeongdong">Seoul - Myeongdong</option>
+                                <option value="Seoul - Itaewon">Seoul - Itaewon</option>
+                                <option value="Seoul - Insadong">Seoul - Insadong</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div id="restaurantFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="cuisine">Type de cuisine</label>
+                            <input type="text" id="cuisine">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="priceRange">Budget (¥)</label>
+                            <input type="number" id="priceRange">
+                        </div>
+                    </div>
+
+                    <div id="activityFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="category">Catégorie</label>
+                            <input type="text" id="category">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activityDate">Date</label>
+                            <input type="date" id="activityDate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activityTime">Heure</label>
+                            <input type="time" id="activityTime">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="duration">Durée (heures)</label>
+                            <input type="number" id="duration" step="0.5">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cost">Prix (¥)</label>
+                            <input type="number" id="cost">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="googleMapsUrl">Google Maps (URL)</label>
+                        <input type="url" id="googleMapsUrl" placeholder="https://maps.app.goo.gl/...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bookingUrl">Lien de réservation (URL)</label>
+                        <input type="url" id="bookingUrl" placeholder="https://...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="photoUrl">Photo (URL)</label>
+                        <input type="url" id="photoUrl" placeholder="https://...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tiktokLink">Lien TikTok</label>
+                        <input type="url" id="tiktokLink" placeholder="https://www.tiktok.com/@...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Priorité</label>
+                        <select id="priority">
+                            <option value="must-do">🔴 Must-Do (Incontournable)</option>
+                            <option value="high">🟠 Haute</option>
+                            <option value="normal" selected>⚪ Normale</option>
+                            <option value="low">⚫ Basse</option>
+                            <option value="optional">⚪ Optionnel</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="isBooked">
+                            <span id="bookedLabel">Réservé</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" id="reservationDateGroup" style="display: none;">
+                        <label for="reservationDate">Date de réservation</label>
+                        <input type="date" id="reservationDate">
+                    </div>
+                </form>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" onclick="saveItem(event)" style="flex: 2;">Enregistrer</button>
+                <button type="button" class="btn" onclick="closeModal('formModal')">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detail -->
+    <div id="detailModal" class="modal detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="detailTitle"></h2>
+                <button class="close-btn" onclick="closeModal('detailModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="detailBody"></div>
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="editFromDetail()">Modifier</button>
+                <button class="btn" onclick="deleteFromDetail()">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Classes
+        class Restaurant {
+            constructor(name, city, cuisine, priceRange, googleMapsUrl, photoUrl, tiktokLink, notes, isReserved, reservationDate, priority, bookingUrl, id = null) {
+                this.id = id || this.generateId();
+                this.name = name;
+                this.city = city;
+                this.cuisine = cuisine;
+                this.priceRange = priceRange;
+                this.googleMapsUrl = googleMapsUrl;
+                this.photoUrl = photoUrl;
+                this.tiktokLink = tiktokLink;
+                this.notes = notes;
+                this.isReserved = isReserved;
+                this.reservationDate = reservationDate;
+                this.priority = priority || 'normal'; // 'must-do', 'high', 'normal', 'low', 'optional'
+                this.bookingUrl = bookingUrl;
+                this.type = 'restaurant';
+            }
+
+            generateId() {
+                return 'resto_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+        }
+
+        class Activity {
+            constructor(name, city, category, date, time, duration, cost, googleMapsUrl, photoUrl, tiktokLink, notes, isBooked, reservationDate, priority, bookingUrl, id = null) {
+                this.id = id || this.generateId();
+                this.name = name;
+                this.city = city;
+                this.category = category;
+                this.date = date;
+                this.time = time;
+                this.duration = duration;
+                this.cost = cost;
+                this.googleMapsUrl = googleMapsUrl;
+                this.photoUrl = photoUrl;
+                this.tiktokLink = tiktokLink;
+                this.notes = notes;
+                this.isBooked = isBooked;
+                this.reservationDate = reservationDate;
+                this.priority = priority || 'normal';
+                this.bookingUrl = bookingUrl;
+                this.type = 'activity';
+            }
+
+            generateId() {
+                return 'activity_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+        }
+
+        // App State
+        let restaurants = [];
+        let activities = [];
+        let currentEditId = null;
+        let currentDetailItem = null;
+        let currentSort = 'none';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadTheme();
+            await loadData();
+            
+            // Restaurer le tri sauvegardé
+            const savedSort = localStorage.getItem('currentSort');
+            if (savedSort) {
+                currentSort = savedSort;
+                document.getElementById('sortBy').value = savedSort;
+            }
+            
+            renderAll();
+            updateDashboard();
+            
+            // Toggle reservation date field
+            document.getElementById('isBooked').addEventListener('change', function() {
+                const dateGroup = document.getElementById('reservationDateGroup');
+                dateGroup.style.display = this.checked ? 'block' : 'none';
+            });
+        });
+
+        // Theme
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.getElementById('themeToggle').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Modal Management
+        function openModal(type, item = null) {
+            const modal = document.getElementById('formModal');
+            const form = document.getElementById('itemForm');
+            const restaurantFields = document.getElementById('restaurantFields');
+            const activityFields = document.getElementById('activityFields');
+            const modalTitle = document.getElementById('modalTitle');
+            const bookedLabel = document.getElementById('bookedLabel');
+            
+            form.reset();
+            currentEditId = null;
+
+            if (type === 'restaurant') {
+                modalTitle.textContent = item ? 'Modifier Restaurant' : 'Ajouter un Restaurant';
+                restaurantFields.style.display = 'block';
+                activityFields.style.display = 'none';
+                bookedLabel.textContent = 'Réservé';
+                document.getElementById('itemType').value = 'restaurant';
+            } else {
+                modalTitle.textContent = item ? 'Modifier Activité' : 'Ajouter une Activité';
+                restaurantFields.style.display = 'none';
+                activityFields.style.display = 'block';
+                bookedLabel.textContent = 'Réservé';
+                document.getElementById('itemType').value = 'activity';
+            }
+
+            if (item) {
+                currentEditId = item.id;
+                document.getElementById('itemId').value = item.id;
+                document.getElementById('itemName').value = item.name;
+                document.getElementById('itemCity').value = item.city;
+                document.getElementById('googleMapsUrl').value = item.googleMapsUrl || '';
+                document.getElementById('bookingUrl').value = item.bookingUrl || '';
+                document.getElementById('photoUrl').value = item.photoUrl || '';
+                document.getElementById('tiktokLink').value = item.tiktokLink || '';
+                document.getElementById('priority').value = item.priority || 'normal';
+                document.getElementById('notes').value = item.notes || '';
+                document.getElementById('reservationDate').value = item.reservationDate || '';
+
+                if (type === 'restaurant') {
+                    document.getElementById('cuisine').value = item.cuisine || '';
+                    document.getElementById('priceRange').value = item.priceRange || '';
+                    document.getElementById('isBooked').checked = item.isReserved;
+                    document.getElementById('reservationDateGroup').style.display = item.isReserved ? 'block' : 'none';
+                } else {
+                    document.getElementById('category').value = item.category || '';
+                    document.getElementById('activityDate').value = item.date || '';
+                    document.getElementById('activityTime').value = item.time || '';
+                    document.getElementById('duration').value = item.duration || '';
+                    document.getElementById('cost').value = item.cost || '';
+                    document.getElementById('isBooked').checked = item.isBooked;
+                    document.getElementById('reservationDateGroup').style.display = item.isBooked ? 'block' : 'none';
+                }
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            currentEditId = null;
+            currentDetailItem = null;
+        }
+
+        function saveItem(e) {
+            e.preventDefault();
+            
+            const type = document.getElementById('itemType').value;
+            const name = document.getElementById('itemName').value;
+            const city = document.getElementById('itemCity').value;
+            const googleMapsUrl = document.getElementById('googleMapsUrl').value;
+            const bookingUrl = document.getElementById('bookingUrl').value;
+            const photoUrl = document.getElementById('photoUrl').value;
+            const tiktokLink = document.getElementById('tiktokLink').value;
+            const priority = document.getElementById('priority').value;
+            const notes = document.getElementById('notes').value;
+            const isBooked = document.getElementById('isBooked').checked;
+            const reservationDate = document.getElementById('reservationDate').value;
+
+            if (type === 'restaurant') {
+                const cuisine = document.getElementById('cuisine').value;
+                const priceRange = parseInt(document.getElementById('priceRange').value) || 0;
+
+                if (currentEditId) {
+                    const index = restaurants.findIndex(r => r.id === currentEditId);
+                    restaurants[index] = new Restaurant(name, city, cuisine, priceRange, googleMapsUrl, photoUrl, tiktokLink, notes, isBooked, reservationDate, priority, bookingUrl, currentEditId);
+                } else {
+                    restaurants.push(new Restaurant(name, city, cuisine, priceRange, googleMapsUrl, photoUrl, tiktokLink, notes, isBooked, reservationDate, priority, bookingUrl));
+                }
+            } else {
+                const category = document.getElementById('category').value;
+                const date = document.getElementById('activityDate').value;
+                const time = document.getElementById('activityTime').value;
+                const duration = parseFloat(document.getElementById('duration').value) || 0;
+                const cost = parseInt(document.getElementById('cost').value) || 0;
+
+                if (currentEditId) {
+                    const index = activities.findIndex(a => a.id === currentEditId);
+                    activities[index] = new Activity(name, city, category, date, time, duration, cost, googleMapsUrl, photoUrl, tiktokLink, notes, isBooked, reservationDate, priority, bookingUrl, currentEditId);
+                } else {
+                    activities.push(new Activity(name, city, category, date, time, duration, cost, googleMapsUrl, photoUrl, tiktokLink, notes, isBooked, reservationDate, priority, bookingUrl));
+                }
+            }
+
+            saveData();
+            renderAll();
+            updateDashboard();
+            closeModal('formModal');
+        }
+
+        function showDetail(item) {
+            currentDetailItem = item; // Sauvegarder pour les boutons Modifier/Supprimer
+            const modal = document.getElementById('detailModal');
+            const title = document.getElementById('detailTitle');
+            const body = document.getElementById('detailBody');
+
+            title.textContent = item.name;
+
+            const isRestaurant = item.type === 'restaurant';
+            const isBooked = isRestaurant ? item.isReserved : item.isBooked;
+
+            let html = `
+                <div class="detail-section">
+                    <label>Ville</label>
+                    <div class="value">${item.city}</div>
+                </div>
+            `;
+
+            if (isRestaurant) {
+                if (item.cuisine) {
+                    html += `
+                        <div class="detail-section">
+                            <label>Type de cuisine</label>
+                            <div class="value">${item.cuisine}</div>
+                        </div>
+                    `;
+                }
+                if (item.priceRange) {
+                    html += `
+                        <div class="detail-section">
+                            <label>Budget</label>
+                            <div class="value">${item.priceRange.toLocaleString()}¥</div>
+                        </div>
+                    `;
+                }
+            } else {
+                if (item.category) {
+                    html += `
+                        <div class="detail-section">
+                            <label>Catégorie</label>
+                            <div class="value">${item.category}</div>
+                        </div>
+                    `;
+                }
+                if (item.date) {
+                    html += `
+                        <div class="detail-section">
+                            <label>Date</label>
+                            <div class="value">${new Date(item.date).toLocaleDateString('fr-FR')}</div>
+                        </div>
+                    `;
+                }
+                if (item.time) {
+                    html += `
+                        <div class="detail-section">
+                            <label>Heure</label>
+                            <div class="value">${item.time}</div>
+                        </div>
+                    `;
+                }
+                if (item.duration) {
+                    html += `
+                        <div class="detail-section">
+                            <label>Durée</label>
+                            <div class="value">${item.duration}h</div>
+                        </div>
+                    `;
+                }
+                if (item.cost) {
+                    html += `
+                        <div class="detail-section">
+                            <label>Prix</label>
+                            <div class="value">${item.cost.toLocaleString()}¥</div>
+                        </div>
+                    `;
+                }
+            }
+
+            if (item.googleMapsUrl) {
+                html += `
+                    <div class="detail-section">
+                        <label>Localisation</label>
+                        <div class="value">
+                            <a href="${item.googleMapsUrl}" 
+                               target="_blank" 
+                               class="address-link">
+                                📍 Ouvrir dans Google Maps
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="detail-section">
+                    <label>Statut</label>
+                    <div class="value">${isBooked ? '✓ Réservé' : 'À réserver'}</div>
+                </div>
+            `;
+
+            if (item.reservationDate) {
+                html += `
+                    <div class="detail-section">
+                        <label>Date de réservation</label>
+                        <div class="value">📅 ${new Date(item.reservationDate).toLocaleDateString('fr-FR')}</div>
+                    </div>
+                `;
+            }
+            
+            if (item.priority && item.priority !== 'normal') {
+                const priorityLabels = {
+                    'must-do': '🔴 Must-Do',
+                    'high': '🟠 Haute',
+                    'low': '⚫ Basse',
+                    'optional': '⚪ Optionnel'
+                };
+                html += `
+                    <div class="detail-section">
+                        <label>Priorité</label>
+                        <div class="value">${priorityLabels[item.priority]}</div>
+                    </div>
+                `;
+            }
+
+            if (item.tiktokLink) {
+                const videoId = extractTikTokVideoId(item.tiktokLink);
+                if (videoId) {
+                    html += `
+                        <div class="detail-section">
+                            <label>TikTok</label>
+                            <blockquote class="tiktok-embed" cite="${item.tiktokLink}" data-video-id="${videoId}" style="max-width: 605px;min-width: 325px;">
+                            </blockquote>
+                        </div>
+                    `;
+                    // Charger le script TikTok après coup
+                    setTimeout(() => {
+                        if (!document.querySelector('script[src*="tiktok.com/embed.js"]')) {
+                            const script = document.createElement('script');
+                            script.src = 'https://www.tiktok.com/embed.js';
+                            script.async = true;
+                            document.body.appendChild(script);
+                        }
+                    }, 100);
+                } else {
+                    html += `
+                        <div class="detail-section">
+                            <label>TikTok</label>
+                            <div class="value">
+                                <a href="${item.tiktokLink}" target="_blank" class="address-link">Voir sur TikTok</a>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            if (item.notes) {
+                html += `
+                    <div class="detail-section">
+                        <label>Notes</label>
+                        <div class="value">${item.notes}</div>
+                    </div>
+                `;
+            }
+
+            body.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        function showDetailById(id, type) {
+            const item = type === 'restaurant' 
+                ? restaurants.find(r => r.id === id)
+                : activities.find(a => a.id === id);
+            
+            if (item) {
+                currentDetailItem = item; // Sauvegarder l'item pour les actions Modifier/Supprimer
+                showDetail(item);
+            }
+        }
+
+        function extractTikTokVideoId(url) {
+            const match = url.match(/\/video\/(\d+)/);
+            return match ? match[1] : null;
+        }
+
+        function editFromDetail() {
+            const itemToEdit = currentDetailItem; // Sauvegarder avant de fermer
+            closeModal('detailModal');
+            // Petit délai pour que la fermeture se fasse bien
+            setTimeout(() => {
+                openModal(itemToEdit.type, itemToEdit);
+            }, 100);
+        }
+
+        function deleteFromDetail() {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
+            
+            if (currentDetailItem.type === 'restaurant') {
+                restaurants = restaurants.filter(r => r.id !== currentDetailItem.id);
+            } else {
+                activities = activities.filter(a => a.id !== currentDetailItem.id);
+            }
+
+            saveData();
+            renderAll();
+            updateDashboard();
+            closeModal('detailModal');
+        }
+
+        function deleteItem(id, type) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
+
+            if (type === 'restaurant') {
+                restaurants = restaurants.filter(r => r.id !== id);
+            } else {
+                activities = activities.filter(a => a.id !== id);
+            }
+
+            saveData();
+            renderAll();
+            updateDashboard();
+        }
+
+        function getPriorityBadge(priority) {
+            if (!priority || priority === 'normal') return '';
+            
+            const badges = {
+                'must-do': { emoji: '🔴', label: 'Must-Do' },
+                'high': { emoji: '🟠', label: 'Haute' },
+                'low': { emoji: '⚫', label: 'Basse' },
+                'optional': { emoji: '⚪', label: 'Optionnel' }
+            };
+            
+            const badge = badges[priority];
+            if (!badge) return '';
+            
+            return `<span class="priority-badge priority-${priority}-badge">${badge.emoji} ${badge.label}</span>`;
+        }
+
+        function renderCalendar() {
+            const calendarView = document.getElementById('calendarView');
+            const allItems = [...restaurants, ...activities];
+            
+            // Grouper par date de réservation
+            const itemsByDate = {};
+            
+            allItems.forEach(item => {
+                const date = item.reservationDate || (item.type === 'activity' ? item.date : null);
+                if (date) {
+                    if (!itemsByDate[date]) {
+                        itemsByDate[date] = [];
+                    }
+                    itemsByDate[date].push(item);
+                }
+            });
+            
+            const dates = Object.keys(itemsByDate).sort();
+            
+            if (dates.length === 0) {
+                calendarView.innerHTML = `
+                    <div class="calendar-empty">
+                        <h3>Aucune date programmée</h3>
+                        <p>Ajoutez des dates de réservation pour voir votre calendrier</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div style="padding: 16px;">';
+            
+            dates.forEach(date => {
+                const items = itemsByDate[date];
+                const dateObj = new Date(date + 'T00:00:00');
+                const dayName = dateObj.toLocaleDateString('fr-FR', { weekday: 'long' });
+                const dayDate = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+                
+                html += `
+                    <div class="calendar-day">
+                        <div class="calendar-day-header">
+                            ${dayName.charAt(0).toUpperCase() + dayName.slice(1)}
+                            <div class="calendar-day-date">${dayDate}</div>
+                        </div>
+                        <div class="calendar-items">
+                `;
+                
+                items.forEach(item => {
+                    const isRestaurant = item.type === 'restaurant';
+                    const isBooked = isRestaurant ? item.isReserved : item.isBooked;
+                    const price = isRestaurant ? item.priceRange : item.cost;
+                    
+                    html += `
+                        <div class="item-card ${item.type} ${item.priority && item.priority !== 'normal' ? 'priority-' + item.priority : ''}" data-item-id="${item.id}" onclick="showDetailById('${item.id}', '${item.type}')" style="margin-bottom: 0;">
+                            <div class="item-content">
+                                <div class="item-header">
+                                    <div>
+                                        <div class="item-title">
+                                            ${item.name}
+                                            ${getPriorityBadge(item.priority)}
+                                        </div>
+                                        <div class="item-city">${item.city}</div>
+                                    </div>
+                                    <span class="badge ${isBooked ? 'badge-reserved' : 'badge-not-reserved'}">
+                                        ${isBooked ? '✓' : '○'}
+                                    </span>
+                                </div>
+                                <div class="item-details">
+                                    ${price ? `<div class="item-detail"><strong>${price.toLocaleString()}¥</strong></div>` : ''}
+                                    ${item.time ? `<div class="item-detail">⏰ ${item.time}</div>` : ''}
+                                </div>
+                            </div>
+                            ${item.photoUrl ? `<img src="${item.photoUrl}" alt="${item.name}" class="item-photo" onerror="this.style.display='none'">` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            calendarView.innerHTML = html;
+        }
+
+        // Render functions
+        function renderAll() {
+            const allItems = applySorting([...restaurants, ...activities]);
+            const sortedRestaurants = applySorting(restaurants);
+            const sortedActivities = applySorting(activities);
+            
+            renderItems('allItems', allItems);
+            renderItems('restaurantItems', sortedRestaurants);
+            renderItems('activityItems', sortedActivities);
+            renderByCity();
+            renderCalendar();
+        }
+
+        function renderItems(containerId, items) {
+            const container = document.getElementById(containerId);
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Aucun élément</h3>
+                        <p>Commencez par ajouter des restaurants ou des activités</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const isRestaurant = item.type === 'restaurant';
+                const isBooked = isRestaurant ? item.isReserved : item.isBooked;
+                const price = isRestaurant ? item.priceRange : item.cost;
+
+                return `
+                    <div class="item-card ${item.type} ${item.priority && item.priority !== 'normal' ? 'priority-' + item.priority : ''}" data-item-id="${item.id}" onclick="showDetailById('${item.id}', '${item.type}')">
+                        <div class="item-content">
+                            <div class="item-header">
+                                <div>
+                                    <div class="item-title">
+                                        ${item.name}
+                                        ${getPriorityBadge(item.priority)}
+                                    </div>
+                                    <div class="item-city">${item.city}</div>
+                                </div>
+                                <span class="badge ${isBooked ? 'badge-reserved' : 'badge-not-reserved'}">
+                                    ${isBooked ? '✓' : '○'}
+                                </span>
+                            </div>
+                            <div class="item-details">
+                                ${price ? `<div class="item-detail"><strong>${price.toLocaleString()}¥</strong></div>` : ''}
+                                ${isRestaurant && item.cuisine ? `<div class="item-detail">${item.cuisine}</div>` : ''}
+                                ${!isRestaurant && item.category ? `<div class="item-detail">${item.category}</div>` : ''}
+                                ${item.reservationDate ? `<div class="item-detail">📅 ${new Date(item.reservationDate).toLocaleDateString('fr-FR')}</div>` : ''}
+                            </div>
+                            ${item.notes ? `<div class="item-notes">${item.notes}</div>` : ''}
+                            <div class="card-actions">
+                                ${item.googleMapsUrl ? `
+                                    <a href="${item.googleMapsUrl}" 
+                                       target="_blank" 
+                                       class="maps-btn"
+                                       onclick="event.stopPropagation()">
+                                        📍 Google Maps
+                                    </a>
+                                ` : ''}
+                                ${item.bookingUrl ? `
+                                    <a href="${item.bookingUrl}" 
+                                       target="_blank" 
+                                       class="booking-btn"
+                                       onclick="event.stopPropagation()">
+                                        🍽️ Réserver
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ${item.photoUrl ? `<img src="${item.photoUrl}" alt="${item.name}" class="item-photo" onerror="this.style.display='none'">` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderByCity() {
+            const cityView = document.getElementById('cityView');
+            const allItems = [...restaurants, ...activities];
+            
+            const cityGroups = {};
+            
+            allItems.forEach(item => {
+                const mainCity = item.city.split(' - ')[0];
+                if (!cityGroups[mainCity]) {
+                    cityGroups[mainCity] = {};
+                }
+                
+                const district = item.city.includes(' - ') ? item.city.split(' - ')[1] : 'Général';
+                if (!cityGroups[mainCity][district]) {
+                    cityGroups[mainCity][district] = [];
+                }
+                cityGroups[mainCity][district].push(item);
+            });
+
+            const cities = Object.keys(cityGroups).sort();
+
+            if (cities.length === 0) {
+                cityView.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Aucune ville</h3>
+                        <p>Ajoutez des restaurants ou activités</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            cities.forEach(city => {
+                const districts = cityGroups[city];
+                const cityItems = Object.values(districts).flat();
+                const cityRestaurants = cityItems.filter(item => item.type === 'restaurant');
+                const cityActivities = cityItems.filter(item => item.type === 'activity');
+
+                html += `
+                    <div style="margin-bottom: 24px;">
+                        <div style="padding: 16px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
+                            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;">${city}</h2>
+                            <p style="font-size: 0.875rem; color: var(--text-secondary);">${cityRestaurants.length} restaurants • ${cityActivities.length} activités</p>
+                        </div>
+                `;
+
+                Object.keys(districts).sort().forEach(district => {
+                    const districtItems = districts[district];
+                    
+                    html += `
+                        <div style="padding: 16px; border-bottom: 1px solid var(--border-color);">
+                            <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary);">
+                                ${district === 'Général' ? city : district}
+                            </h3>
+                            ${districtItems.map(item => {
+                                const isRestaurant = item.type === 'restaurant';
+                                const isBooked = isRestaurant ? item.isReserved : item.isBooked;
+                                const price = isRestaurant ? item.priceRange : item.cost;
+
+                                return `
+                                    <div class="item-card ${item.type}" data-item-id="${item.id}" onclick="showDetailById('${item.id}', '${item.type}')" style="margin-bottom: 8px;">
+                                        <div class="item-content">
+                                            <div class="item-header">
+                                                <div>
+                                                    <div class="item-title">${item.name}</div>
+                                                </div>
+                                                <span class="badge ${isBooked ? 'badge-reserved' : 'badge-not-reserved'}">
+                                                    ${isBooked ? '✓' : '○'}
+                                                </span>
+                                            </div>
+                                            <div class="item-details">
+                                                ${price ? `<div class="item-detail"><strong>${price.toLocaleString()}¥</strong></div>` : ''}
+                                                ${item.reservationDate ? `<div class="item-detail">📅 ${new Date(item.reservationDate).toLocaleDateString('fr-FR')}</div>` : ''}
+                                            </div>
+                                        </div>
+                                        ${item.photoUrl ? `<img src="${item.photoUrl}" alt="${item.name}" class="item-photo" onerror="this.style.display='none'">` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            });
+
+            cityView.innerHTML = html;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+
+            switch(tab) {
+                case 'all':
+                    document.getElementById('allContent').classList.add('active');
+                    break;
+                case 'restaurants':
+                    document.getElementById('restaurantsContent').classList.add('active');
+                    break;
+                case 'activities':
+                    document.getElementById('activitiesContent').classList.add('active');
+                    break;
+                case 'calendar':
+                    document.getElementById('calendarContent').classList.add('active');
+                    break;
+                case 'by-city':
+                    document.getElementById('byCityContent').classList.add('active');
+                    break;
+            }
+        }
+
+        function filterItems() {
+            const cityFilter = document.getElementById('cityFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filteredRestaurants = restaurants;
+            let filteredActivities = activities;
+
+            if (cityFilter) {
+                // Vérifier si c'est une ville principale (sans " - ")
+                const isMainCity = !cityFilter.includes(' - ');
+                
+                filteredRestaurants = filteredRestaurants.filter(r => {
+                    if (isMainCity) {
+                        // Si on filtre par ville principale, montrer tout ce qui commence par cette ville
+                        return r.city.startsWith(cityFilter);
+                    } else {
+                        // Sinon, filtrer exactement par le quartier
+                        return r.city === cityFilter;
+                    }
+                });
+                
+                filteredActivities = filteredActivities.filter(a => {
+                    if (isMainCity) {
+                        return a.city.startsWith(cityFilter);
+                    } else {
+                        return a.city === cityFilter;
+                    }
+                });
+            }
+
+            if (searchTerm) {
+                filteredRestaurants = filteredRestaurants.filter(r => 
+                    r.name.toLowerCase().includes(searchTerm) ||
+                    (r.cuisine && r.cuisine.toLowerCase().includes(searchTerm)) ||
+                    (r.googleMapsUrl && r.googleMapsUrl.toLowerCase().includes(searchTerm)) ||
+                    (r.city && r.city.toLowerCase().includes(searchTerm))
+                );
+                filteredActivities = filteredActivities.filter(a => 
+                    a.name.toLowerCase().includes(searchTerm) ||
+                    (a.category && a.category.toLowerCase().includes(searchTerm)) ||
+                    (a.googleMapsUrl && a.googleMapsUrl.toLowerCase().includes(searchTerm)) ||
+                    (a.city && a.city.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            const allFiltered = [...filteredRestaurants, ...filteredActivities];
+            renderItems('allItems', applySorting(allFiltered));
+            renderItems('restaurantItems', applySorting(filteredRestaurants));
+            renderItems('activityItems', applySorting(filteredActivities));
+        }
+
+        function sortItems() {
+            currentSort = document.getElementById('sortBy').value;
+            localStorage.setItem('currentSort', currentSort);
+            filterItems();
+        }
+
+        function applySorting(items) {
+            const sorted = [...items];
+            
+            switch(currentSort) {
+                case 'priority':
+                    const priorityOrder = { 'must-do': 1, 'high': 2, 'normal': 3, 'low': 4, 'optional': 5 };
+                    return sorted.sort((a, b) => {
+                        const priorityA = priorityOrder[a.priority || 'normal'];
+                        const priorityB = priorityOrder[b.priority || 'normal'];
+                        return priorityA - priorityB;
+                    });
+                case 'price-asc':
+                    return sorted.sort((a, b) => {
+                        const priceA = a.type === 'restaurant' ? (a.priceRange || 0) : (a.cost || 0);
+                        const priceB = b.type === 'restaurant' ? (b.priceRange || 0) : (b.cost || 0);
+                        return priceA - priceB;
+                    });
+                case 'price-desc':
+                    return sorted.sort((a, b) => {
+                        const priceA = a.type === 'restaurant' ? (a.priceRange || 0) : (a.cost || 0);
+                        const priceB = b.type === 'restaurant' ? (b.priceRange || 0) : (b.cost || 0);
+                        return priceB - priceA;
+                    });
+                case 'name':
+                    return sorted.sort((a, b) => a.name.localeCompare(b.name));
+                default:
+                    return sorted;
+            }
+        }
+
+        function updateDashboard() {
+            document.getElementById('totalRestaurants').textContent = restaurants.length;
+            document.getElementById('totalActivities').textContent = activities.length;
+
+            const totalBudget = restaurants.reduce((sum, r) => sum + (r.priceRange || 0), 0) +
+                               activities.reduce((sum, a) => sum + (a.cost || 0), 0);
+            document.getElementById('totalBudget').textContent = totalBudget.toLocaleString() + '¥';
+
+            const totalReservations = restaurants.filter(r => r.isReserved).length +
+                                     activities.filter(a => a.isBooked).length;
+            document.getElementById('totalReservations').textContent = totalReservations;
+        }
+
+        function saveData() {
+            localStorage.setItem('japanTripRestaurants', JSON.stringify(restaurants));
+            localStorage.setItem('japanTripActivities', JSON.stringify(activities));
+        }
+
+        async function loadData() {
+            const savedRestaurants = localStorage.getItem('japanTripRestaurants');
+            const savedActivities = localStorage.getItem('japanTripActivities');
+
+            if (savedRestaurants && savedActivities) {
+                // Charger depuis localStorage
+                const parsedRestaurants = JSON.parse(savedRestaurants);
+                const parsedActivities = JSON.parse(savedActivities);
+                
+                restaurants = parsedRestaurants.map(r => new Restaurant(r.name, r.city, r.cuisine, r.priceRange, r.googleMapsUrl || r.address, r.photoUrl, r.tiktokLink, r.notes, r.isReserved, r.reservationDate, r.priority, r.bookingUrl, r.id));
+                activities = parsedActivities.map(a => new Activity(a.name, a.city, a.category, a.date, a.time, a.duration, a.cost, a.googleMapsUrl || a.address, a.photoUrl, a.tiktokLink, a.notes, a.isBooked, a.reservationDate, a.priority, a.bookingUrl, a.id));
+            } else {
+                // Charger les données par défaut intégrées
+                fetch('data.json')
+                    .then(response => response.json())
+                    .then(data => {
+                
+                if (data.restaurants) {
+                    restaurants = data.restaurants.map(r => 
+                        new Restaurant(r.name, r.city, r.cuisine, r.priceRange, r.googleMapsUrl, r.photoUrl, r.tiktokLink, r.notes, r.isReserved, r.reservationDate, r.priority, r.bookingUrl, r.id)
+                    );
+                }
+                
+                if (data.activities) {
+                    activities = data.activities.map(a => 
+                        new Activity(a.name, a.city, a.category, a.date, a.time, a.duration, a.cost, a.googleMapsUrl, a.photoUrl, a.tiktokLink, a.notes, a.isBooked, a.reservationDate, a.priority, a.bookingUrl, a.id)
+                    );
+                }
+                
+                // Sauvegarder les données dans localStorage
+                saveData();
+                console.log('✅ Données chargées depuis data.json:', data.restaurants.length, 'restaurants,', data.activities.length, 'activités');
+                })
+                .catch(error => {
+                    console.error('❌ Erreur chargement data.json:', error);
+                    alert('Erreur: Impossible de charger data.json. Vérifiez que le fichier est dans le même dossier que index.html');
+                });
+                
+                if (data.restaurants) {
+                    restaurants = data.restaurants.map(r => 
+                        new Restaurant(r.name, r.city, r.cuisine, r.priceRange, r.googleMapsUrl, r.photoUrl, r.tiktokLink, r.notes, r.isReserved, r.reservationDate, r.priority, r.bookingUrl, r.id)
+                    );
+                }
+                
+                if (data.activities) {
+                    activities = data.activities.map(a => 
+                        new Activity(a.name, a.city, a.category, a.date, a.time, a.duration, a.cost, a.googleMapsUrl, a.photoUrl, a.tiktokLink, a.notes, a.isBooked, a.reservationDate, a.priority, a.bookingUrl, a.id)
+                    );
+                }
+                
+                // Sauvegarder les données par défaut dans localStorage
+                saveData();
+                console.log('Données par défaut chargées (17 restaurants, 24 activités)');
+            }
+        }
+
+        function exportData() {
+            fetch('data.json')
+                    .then(response => response.json())
+                    .then(data => {
+                
+                if (data.restaurants) {
+                    restaurants = data.restaurants.map(r => 
+                        new Restaurant(r.name, r.city, r.cuisine, r.priceRange, r.googleMapsUrl, r.photoUrl, r.tiktokLink, r.notes, r.isReserved, r.reservationDate, r.priority, r.bookingUrl, r.id)
+                    );
+                }
+                
+                if (data.activities) {
+                    activities = data.activities.map(a => 
+                        new Activity(a.name, a.city, a.category, a.date, a.time, a.duration, a.cost, a.googleMapsUrl, a.photoUrl, a.tiktokLink, a.notes, a.isBooked, a.reservationDate, a.priority, a.bookingUrl, a.id)
+                    );
+                }
+                
+                // Sauvegarder les données dans localStorage
+                saveData();
+                console.log('✅ Données chargées depuis data.json:', data.restaurants.length, 'restaurants,', data.activities.length, 'activités');
+                })
+                .catch(error => {
+                    console.error('❌ Erreur chargement data.json:', error);
+                    alert('Erreur: Impossible de charger data.json. Vérifiez que le fichier est dans le même dossier que index.html');
+                });
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `japan-trip-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        
+                        if (data.restaurants) {
+                            restaurants = data.restaurants.map(r => 
+                                new Restaurant(r.name, r.city, r.cuisine, r.priceRange, r.googleMapsUrl || r.address, r.photoUrl, r.tiktokLink, r.notes, r.isReserved, r.reservationDate, r.priority, r.bookingUrl, r.id)
+                            );
+                        }
+                        
+                        if (data.activities) {
+                            activities = data.activities.map(a => 
+                                new Activity(a.name, a.city, a.category, a.date, a.time, a.duration, a.cost, a.googleMapsUrl || a.address, a.photoUrl, a.tiktokLink, a.notes, a.isBooked, a.reservationDate, a.priority, a.bookingUrl, a.id)
+                            );
+                        }
+                        
+                        saveData();
+                        renderAll();
+                        updateDashboard();
+                        alert('Données importées avec succès !');
+                    } catch (error) {
+                        alert('Erreur lors de l\'import du fichier');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function clearAllData() {
+            if (!confirm('⚠️ ATTENTION : Cette action va supprimer TOUTES vos données de manière irréversible. Êtes-vous absolument sûr ?')) {
+                return;
+            }
+
+            if (!confirm('Dernière confirmation : voulez-vous vraiment vider toutes les données ?')) {
+                return;
+            }
+
+            restaurants = [];
+            activities = [];
+            localStorage.removeItem('japanTripRestaurants');
+            localStorage.removeItem('japanTripActivities');
+            
+            renderAll();
+            updateDashboard();
+            
+            alert('✓ Toutes les données ont été supprimées');
+        }
+    </script>
+</body>
+</html>
