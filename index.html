@@ -978,32 +978,76 @@
         .timeline-container {
             display: flex;
             overflow-x: auto;
-            overflow-y: hidden;
-            gap: 20px;
-            padding: 20px;
+            overflow-y: visible;
+            gap: 0;
+            padding: 20px 0 60px 0;
             -webkit-overflow-scrolling: touch;
             scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
         }
 
         .timeline-container::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .timeline-container::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-            border-radius: 4px;
-        }
-
-        .timeline-container::-webkit-scrollbar-thumb {
-            background: var(--primary-blue);
-            border-radius: 4px;
+            display: none;
         }
 
         .timeline-day {
-            min-width: 300px;
-            max-width: 300px;
-            scroll-snap-align: start;
+            min-width: 100vw;
+            max-width: 100vw;
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
             flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        /* Indicateurs style Instagram */
+        .timeline-indicators {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 50;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .timeline-indicators {
+                bottom: 20px;
+            }
+        }
+
+        .timeline-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .timeline-indicator.active {
+            background: var(--primary-blue);
+            transform: scale(1.3);
+        }
+
+        [data-theme="light"] .timeline-indicators {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="light"] .timeline-indicator {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="light"] .timeline-indicator.active {
+            background: var(--primary-blue);
         }
 
         .timeline-date-header {
@@ -1012,6 +1056,16 @@
             padding: 16px;
             margin-bottom: 16px;
             text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .timeline-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
         }
 
         .timeline-day-name {
@@ -1036,12 +1090,6 @@
             font-weight: 500;
             color: var(--text-secondary);
             margin-top: 4px;
-        }
-
-        .timeline-items {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
         }
 
         .timeline-card {
@@ -2028,9 +2076,9 @@
                 return;
             }
 
-            let html = '<div class="timeline-container">';
+            let html = '<div class="timeline-container" id="timelineContainer">';
 
-            dates.forEach(date => {
+            dates.forEach((date, dayIndex) => {
                 const items = itemsByDate[date];
                 items.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
@@ -2040,7 +2088,7 @@
                 const monthName = dateObj.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
                 html += `
-                    <div class="timeline-day">
+                    <div class="timeline-day" data-day-index="${dayIndex}">
                         <div class="timeline-date-header">
                             <div class="timeline-day-name">${dayName.charAt(0).toUpperCase() + dayName.slice(1)}</div>
                             <div class="timeline-day-number">${dayNumber}</div>
@@ -2104,7 +2152,27 @@
             });
 
             html += '</div>';
+
+            // Ajouter les indicateurs
+            if (dates.length > 1) {
+                html += '<div class="timeline-indicators">';
+                for (let i = 0; i < dates.length; i++) {
+                    html += `<div class="timeline-indicator ${i === 0 ? 'active' : ''}" data-index="${i}" onclick="scrollToDay(${i})"></div>`;
+                }
+                html += '</div>';
+            }
+
             calendarView.innerHTML = html;
+
+            // Ajouter l'écouteur de scroll pour mettre à jour les indicateurs
+            if (dates.length > 1) {
+                setTimeout(() => {
+                    const container = document.getElementById('timelineContainer');
+                    if (container) {
+                        container.addEventListener('scroll', updateTimelineIndicators);
+                    }
+                }, 100);
+            }
         }
 
         // Render functions
@@ -2121,6 +2189,35 @@
             
             // Re-initialize Lucide icons after render
             lucide.createIcons();
+        }
+
+        // Timeline indicators
+        function updateTimelineIndicators() {
+            const container = document.getElementById('timelineContainer');
+            if (!container) return;
+
+            const scrollLeft = container.scrollLeft;
+            const containerWidth = container.offsetWidth;
+            const currentIndex = Math.round(scrollLeft / containerWidth);
+
+            document.querySelectorAll('.timeline-indicator').forEach((indicator, index) => {
+                if (index === currentIndex) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+        }
+
+        function scrollToDay(index) {
+            const container = document.getElementById('timelineContainer');
+            if (!container) return;
+
+            const containerWidth = container.offsetWidth;
+            container.scrollTo({
+                left: index * containerWidth,
+                behavior: 'smooth'
+            });
         }
 
         function renderItems(containerId, items) {
