@@ -2354,13 +2354,10 @@
             // Switch tab
             switchTab(view);
             
-            // Scroll to top (sauf pour calendrier, done et settings)
-            if (view !== 'calendar' && view !== 'done' && view !== 'settings') {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
 
         // Mark item as done (restaurant or activity)
