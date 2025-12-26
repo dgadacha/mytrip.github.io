@@ -1151,9 +1151,9 @@
                         <button class="btn" onclick="importData()" style="width: 100%;">
                             📤 Importer des données (JSON)
                         </button>
-						<button class="btn" onclick="clearAllData()" style="width: 100%; background: var(--error); color: white; border-color: var(--error);">
-							🗑️ Supprimer toutes les données
-						</button>
+                        <button class="btn" onclick="clearAllData()" style="width: 100%; background: var(--error); color: white; border-color: var(--error);">
+                            🗑️ Supprimer toutes les données
+                        </button>
                     </div>
                 </div>
 
@@ -2354,6 +2354,7 @@
             // Switch tab
             switchTab(view);
             
+            // Scroll to top TOUJOURS
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
