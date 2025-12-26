@@ -1586,6 +1586,9 @@
             saveData();
             filterItems();
             renderCalendar(); // Mettre à jour le calendrier
+            
+            // Re-initialize Lucide icons
+            setTimeout(() => lucide.createIcons(), 50);
         }
 
         // Modal Management
@@ -2008,7 +2011,7 @@
                                         </span>
                                     </div>
                                     <div class="item-details">
-                                        ${item.time ? `<div class="item-detail">🕒 ${item.time}</div>` : ''}
+                                        ${item.time ? `<div class="item-detail" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="clock" style="width: 14px; height: 14px;"></i>${item.time}</div>` : ''}
                                         ${price ? `<div class="item-detail"><strong>${price.toLocaleString()}¥</strong></div>` : ''}
                                         ${isRestaurant && item.cuisine ? `<div class="item-detail">${item.cuisine}</div>` : ''}
                                         ${!isRestaurant && item.category ? `<div class="item-detail">${item.category}</div>` : ''}
@@ -2260,6 +2263,9 @@
                     updateSettingsStats();
                     break;
             }
+            
+            // Re-initialize Lucide icons
+            setTimeout(() => lucide.createIcons(), 50);
         }
 
         function filterItems() {
@@ -2308,6 +2314,9 @@
             renderItems('allItems', applySorting(allFiltered));
             renderItems('restaurantItems', applySorting(filteredRestaurants));
             renderItems('activityItems', applySorting(filteredActivities));
+            
+            // Re-initialize Lucide icons
+            setTimeout(() => lucide.createIcons(), 50);
         }
 
         function sortItems() {
@@ -2531,6 +2540,9 @@
                 top: 0,
                 behavior: 'smooth'
             });
+            
+            // Re-initialize Lucide icons
+            setTimeout(() => lucide.createIcons(), 50);
         }
     </script>
 
