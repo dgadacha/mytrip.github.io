@@ -1163,47 +1163,6 @@ select:focus, input:focus, textarea:focus {
     padding: 0 20px;
 }
 
-.timeline-indicators {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 8px;
-    z-index: 50;
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 20px;
-}
-
-.timeline-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-}
-
-.timeline-indicator.active {
-    background: var(--primary-blue);
-    transform: scale(1.3);
-}
-
-[data-theme="light"] .timeline-indicators {
-    background: rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .timeline-indicator {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="light"] .timeline-indicator.active {
-    background: var(--primary-blue);
-}
-
 .timeline-date-header {
     background: var(--bg-secondary);
     border-radius: 12px;
@@ -1483,10 +1442,6 @@ select:focus, input:focus, textarea:focus {
     .calendar-view {
         padding-bottom: 100px;
     }
-
-    .timeline-indicators {
-        bottom: 80px;
-    }
 }
 
 @media (min-width: 768px) {
@@ -1516,10 +1471,6 @@ select:focus, input:focus, textarea:focus {
 
     .item-card {
         margin-bottom: 0;
-    }
-
-    .timeline-indicators {
-        bottom: 20px;
     }
 }
 

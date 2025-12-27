@@ -1,5 +1,6 @@
 let currentTripId = null;
 let currentTrip = null;
+let hotels = [];
 let restaurants = [];
 let activities = [];
 
@@ -59,7 +60,8 @@ async function loadTrip() {
     if (activitiesResult.success) {
         const allActivities = activitiesResult.activities;
         
-        // Séparer restaurants et activités
+        // Séparer hotels, restaurants et activités
+        hotels = allActivities.filter(a => a.type === 'hotel');
         restaurants = allActivities.filter(a => a.type === 'restaurant');
         activities = allActivities.filter(a => a.type === 'activity');
     }
@@ -113,10 +115,12 @@ function showReadOnlyBanner() {
 }
 
 const app = {
+    hotels: [],
     restaurants: [],
     activities: [],
     
     async initialize() {
+        this.hotels = hotels;
         this.restaurants = restaurants;
         this.activities = activities;
         
@@ -126,7 +130,7 @@ const app = {
         
         // Render initial
         this.renderAll();
-        Dashboard.update(this.restaurants, this.activities);
+        Dashboard.update(this.hotels, this.restaurants, this.activities);
         
         // Icons
         lucide.createIcons();
@@ -136,27 +140,18 @@ const app = {
         document.getElementById('cityFilter').addEventListener('change', () => this.filterItems());
         document.getElementById('sortSelect').addEventListener('change', (e) => this.sortItems(e.target.value));
         
-        // Event listener pour isBooked checkbox
-        const isBookedCheckbox = document.getElementById('isBooked');
-        if (isBookedCheckbox) {
-            isBookedCheckbox.addEventListener('change', function() {
-                const dateGroup = document.getElementById('reservationDateGroup');
-                dateGroup.style.display = this.checked ? 'block' : 'none';
-            });
-        }
-        
         console.log('✅ App initialisée avec Firebase');
     },
 
     renderAll() {
-        const allItems = SortManager.applySorting([...this.restaurants, ...this.activities]);
+        const sortedHotels = SortManager.applySorting(this.hotels);
         const sortedRestaurants = SortManager.applySorting(this.restaurants);
         const sortedActivities = SortManager.applySorting(this.activities);
         
-        ListView.render('allItems', allItems);
+        ListView.render('hotelItems', sortedHotels);
         ListView.render('restaurantItems', sortedRestaurants);
         ListView.render('activityItems', sortedActivities);
-        CalendarView.render(this.restaurants, this.activities);
+        CalendarView.render(this.hotels, this.restaurants, this.activities);
         
         // Mettre à jour le filtre ville
         this.updateCityFilter();
@@ -166,7 +161,7 @@ const app = {
 
     updateCityFilter() {
         const cities = new Set();
-        [...this.restaurants, ...this.activities].forEach(item => {
+        [...this.hotels, ...this.restaurants, ...this.activities].forEach(item => {
             if (item.city) cities.add(item.city);
         });
 
@@ -199,11 +194,11 @@ const app = {
             return matchesSearch && matchesCity;
         };
 
-        const filteredAll = [...this.restaurants, ...this.activities].filter(filterItem);
+        const filteredHotels = this.hotels.filter(filterItem);
         const filteredRestaurants = this.restaurants.filter(filterItem);
         const filteredActivities = this.activities.filter(filterItem);
 
-        ListView.render('allItems', SortManager.applySorting(filteredAll));
+        ListView.render('hotelItems', SortManager.applySorting(filteredHotels));
         ListView.render('restaurantItems', SortManager.applySorting(filteredRestaurants));
         ListView.render('activityItems', SortManager.applySorting(filteredActivities));
         
@@ -231,6 +226,7 @@ const app = {
             category: document.getElementById('category').value,
             price: parseInt(document.getElementById('price').value) || 0,
             date: document.getElementById('reservationDate').value,
+            endDate: type === 'hotel' ? document.getElementById('endDate').value : '',
             priority: document.getElementById('priority').value,
             googleMapsUrl: document.getElementById('googleMapsUrl').value,
             photoUrl: document.getElementById('photoUrl').value,
@@ -245,12 +241,19 @@ const app = {
             const result = await FirebaseService.updateActivity(currentTripId, ModalManager.currentEditId, activityData);
             
             if (result.success) {
-                // Mettre à jour localement
-                const index = type === 'restaurant' 
-                    ? this.restaurants.findIndex(r => r.id === ModalManager.currentEditId)
-                    : this.activities.findIndex(a => a.id === ModalManager.currentEditId);
+                // Déterminer le bon tableau selon le type
+                let items, index;
+                if (type === 'hotel') {
+                    index = this.hotels.findIndex(h => h.id === ModalManager.currentEditId);
+                    items = this.hotels;
+                } else if (type === 'restaurant') {
+                    index = this.restaurants.findIndex(r => r.id === ModalManager.currentEditId);
+                    items = this.restaurants;
+                } else {
+                    index = this.activities.findIndex(a => a.id === ModalManager.currentEditId);
+                    items = this.activities;
+                }
                 
-                const items = type === 'restaurant' ? this.restaurants : this.activities;
                 activityData.id = ModalManager.currentEditId;
                 activityData.isDone = items[index].isDone || false;
                 items[index] = new Activity(activityData);
@@ -265,7 +268,9 @@ const app = {
                 activityData.id = result.id;
                 activityData.isDone = false;
                 
-                if (type === 'restaurant') {
+                if (type === 'hotel') {
+                    this.hotels.push(new Activity(activityData));
+                } else if (type === 'restaurant') {
                     this.restaurants.push(new Activity(activityData));
                 } else {
                     this.activities.push(new Activity(activityData));
@@ -276,7 +281,7 @@ const app = {
         }
 
         this.renderAll();
-        Dashboard.update(this.restaurants, this.activities);
+        Dashboard.update(this.hotels, this.restaurants, this.activities);
         ModalManager.close('formModal');
     },
 
@@ -287,8 +292,16 @@ const app = {
         if (!currentTrip.canEdit()) {
             return;
         }
-        
-        const items = type === 'restaurant' ? this.restaurants : this.activities;
+
+        let items;
+        if (type === 'hotel') {
+            items = this.hotels;
+        } else if (type === 'restaurant') {
+            items = this.restaurants;
+        } else {
+            items = this.activities;
+        }
+
         const item = items.find(i => i.id === id);
         
         if (item) {
@@ -298,12 +311,20 @@ const app = {
             await FirebaseService.updateActivity(currentTripId, id, { isDone: item.isDone });
             
             this.renderAll();
-            Dashboard.update(this.restaurants, this.activities);
+            Dashboard.update(this.hotels, this.restaurants, this.activities);
         }
     },
 
     showDetailById(id, type) {
-        const items = type === 'restaurant' ? this.restaurants : this.activities;
+        let items;
+        if (type === 'hotel') {
+            items = this.hotels;
+        } else if (type === 'restaurant') {
+            items = this.restaurants;
+        } else {
+            items = this.activities;
+        }
+
         const item = items.find(i => i.id === id);
         if (item) {
             ModalManager.openDetail(item);
@@ -326,14 +347,16 @@ const app = {
         const result = await FirebaseService.deleteActivity(currentTripId, itemId);
         
         if (result.success) {
-            if (itemType === 'restaurant') {
+            if (itemType === 'hotel') {
+                this.hotels = this.hotels.filter(h => h.id !== itemId);
+            } else if (itemType === 'restaurant') {
                 this.restaurants = this.restaurants.filter(r => r.id !== itemId);
             } else {
                 this.activities = this.activities.filter(a => a.id !== itemId);
             }
             
             this.renderAll();
-            Dashboard.update(this.restaurants, this.activities);
+            Dashboard.update(this.hotels, this.restaurants, this.activities);
             ModalManager.close('detailModal');
         } else {
             alert('Erreur: ' + result.error);
@@ -351,7 +374,15 @@ const app = {
         const itemId = detailContent.dataset.itemId;
         const itemType = detailContent.dataset.itemType;
         
-        const items = itemType === 'restaurant' ? this.restaurants : this.activities;
+        let items;
+        if (itemType === 'hotel') {
+            items = this.hotels;
+        } else if (itemType === 'restaurant') {
+            items = this.restaurants;
+        } else {
+            items = this.activities;
+        }
+
         const item = items.find(i => i.id === itemId);
         
         if (item) {
@@ -372,14 +403,16 @@ const app = {
         const result = await FirebaseService.deleteActivity(currentTripId, id);
         
         if (result.success) {
-            if (type === 'restaurant') {
+            if (type === 'hotel') {
+                this.hotels = this.hotels.filter(h => h.id !== id);
+            } else if (type === 'restaurant') {
                 this.restaurants = this.restaurants.filter(r => r.id !== id);
             } else {
                 this.activities = this.activities.filter(a => a.id !== id);
             }
             
             this.renderAll();
-            Dashboard.update(this.restaurants, this.activities);
+            Dashboard.update(this.hotels, this.restaurants, this.activities);
         } else {
             alert('Erreur: ' + result.error);
         }
@@ -389,6 +422,7 @@ const app = {
         const data = {
             tripName: currentTrip.name,
             tripId: currentTripId,
+            hotels: this.hotels,
             restaurants: this.restaurants,
             activities: this.activities,
             exportDate: new Date().toISOString()
@@ -420,31 +454,38 @@ const app = {
             try {
                 const data = JSON.parse(e.target.result);
                 
-                if (!confirm(`Importer ${data.restaurants?.length || 0} restaurants et ${data.activities?.length || 0} activités ? Cela ajoutera ces éléments au voyage actuel.`)) {
+                if (!confirm(`Importer ${data.hotels?.length || 0} hôtels, ${data.restaurants?.length || 0} restaurants et ${data.activities?.length || 0} activités ? Cela ajoutera ces éléments au voyage actuel.`)) {
                     return;
                 }
 
                 // Importer les données
+                const importedHotels = data.hotels || [];
                 const importedRestaurants = data.restaurants || [];
                 const importedActivities = data.activities || [];
 
                 // Ajouter à Firestore
+                for (const hotel of importedHotels) {
+                    delete hotel.id;
+                    await FirebaseService.addActivity(currentTripId, hotel);
+                }
+
                 for (const resto of importedRestaurants) {
-                    delete resto.id; // Supprimer l'ancien ID
+                    delete resto.id;
                     await FirebaseService.addActivity(currentTripId, resto);
                 }
 
                 for (const activity of importedActivities) {
-                    delete activity.id; // Supprimer l'ancien ID
+                    delete activity.id;
                     await FirebaseService.addActivity(currentTripId, activity);
                 }
 
                 // Recharger
                 await loadTrip();
+                this.hotels = hotels;
                 this.restaurants = restaurants;
                 this.activities = activities;
                 this.renderAll();
-                Dashboard.update(this.restaurants, this.activities);
+                Dashboard.update(this.hotels, this.restaurants, this.activities);
 
                 ModalManager.close('settingsModal');
                 alert('Import réussi !');
@@ -473,15 +514,16 @@ const app = {
         }
 
         // Supprimer toutes les activités
-        const allActivities = [...this.restaurants, ...this.activities];
+        const allActivities = [...this.hotels, ...this.restaurants, ...this.activities];
         for (const activity of allActivities) {
             await FirebaseService.deleteActivity(currentTripId, activity.id);
         }
 
+        this.hotels = [];
         this.restaurants = [];
         this.activities = [];
         this.renderAll();
-        Dashboard.update(this.restaurants, this.activities);
+        Dashboard.update(this.hotels, this.restaurants, this.activities);
         
         ModalManager.close('settingsModal');
         alert('Toutes les données ont été supprimées.');
@@ -535,6 +577,176 @@ function showInviteError(message) {
     const errorDiv = document.getElementById('inviteError');
     document.getElementById('inviteErrorMessage').textContent = message;
     errorDiv.style.display = 'block';
+}
+
+// ===== QUICK DATE MODAL =====
+
+let currentQuickDateItem = null;
+
+function openQuickDateModal(id, type, event) {
+    event.stopPropagation();
+
+    let items;
+    if (type === 'hotel') {
+        items = app.hotels;
+    } else if (type === 'restaurant') {
+        items = app.restaurants;
+    } else {
+        items = app.activities;
+    }
+
+    const item = items.find(i => i.id === id);
+    
+    if (!item) return;
+    
+    currentQuickDateItem = { id, type, item };
+    
+    // Adapter le titre et les labels selon le type
+    const modalTitle = document.getElementById('quickDateModalTitle');
+    const quickDateLabel = document.getElementById('quickDateLabel');
+    const quickEndDateGroup = document.getElementById('quickEndDateGroup');
+    
+    if (type === 'hotel') {
+        modalTitle.textContent = 'Définir les dates de séjour';
+        quickDateLabel.textContent = 'Date de début (Check-in)';
+        quickEndDateGroup.style.display = 'block';
+    } else {
+        modalTitle.textContent = 'Définir une date';
+        quickDateLabel.textContent = 'Date et heure';
+        quickEndDateGroup.style.display = 'none';
+    }
+    
+    // Pré-remplir avec les dates existantes si disponibles
+    const quickDateInput = document.getElementById('quickDate');
+    const quickEndDateInput = document.getElementById('quickEndDate');
+    const removeBtn = document.getElementById('removeQuickDateBtn');
+    
+    if (item.date) {
+        quickDateInput.value = item.date;
+        removeBtn.style.display = 'block';
+    } else {
+        quickDateInput.value = '';
+        removeBtn.style.display = 'none';
+    }
+    
+    if (type === 'hotel' && item.endDate) {
+        quickEndDateInput.value = item.endDate;
+    } else {
+        quickEndDateInput.value = '';
+    }
+    
+    document.getElementById('quickDateModal').classList.add('active');
+    quickDateInput.focus();
+    lucide.createIcons();
+}
+
+async function saveQuickDate() {
+    if (!currentQuickDateItem) return;
+    
+    const newDate = document.getElementById('quickDate').value;
+    
+    if (!newDate) {
+        alert('Veuillez sélectionner une date');
+        return;
+    }
+    
+    const { id, type } = currentQuickDateItem;
+    
+    // Préparer les données à mettre à jour
+    const updates = { date: newDate };
+    
+    // Si c'est un hôtel, inclure la date de fin
+    if (type === 'hotel') {
+        const newEndDate = document.getElementById('quickEndDate').value;
+        
+        // Validation : date de fin doit être après date de début
+        if (newEndDate && new Date(newEndDate) <= new Date(newDate)) {
+            alert('La date de fin doit être après la date de début');
+            return;
+        }
+        
+        updates.endDate = newEndDate || '';
+    }
+    
+    // Mettre à jour dans Firebase
+    const result = await FirebaseService.updateActivity(currentTripId, id, updates);
+    
+    if (result.success) {
+        // Mettre à jour localement
+        let items;
+        if (type === 'hotel') {
+            items = app.hotels;
+        } else if (type === 'restaurant') {
+            items = app.restaurants;
+        } else {
+            items = app.activities;
+        }
+
+        const item = items.find(i => i.id === id);
+        if (item) {
+            item.date = newDate;
+            if (type === 'hotel') {
+                item.endDate = updates.endDate;
+            }
+        }
+        
+        // Re-render
+        app.renderAll();
+        Dashboard.update(app.hotels, app.restaurants, app.activities);
+        
+        // Fermer la modal
+        closeModal('quickDateModal');
+        currentQuickDateItem = null;
+    } else {
+        alert('Erreur: ' + result.error);
+    }
+}
+
+async function removeQuickDate() {
+    if (!currentQuickDateItem) return;
+    
+    if (!confirm('Voulez-vous vraiment supprimer cette date ?')) return;
+    
+    const { id, type } = currentQuickDateItem;
+    
+    // Préparer les données à supprimer
+    const updates = { date: '' };
+    if (type === 'hotel') {
+        updates.endDate = '';
+    }
+    
+    // Mettre à jour dans Firebase
+    const result = await FirebaseService.updateActivity(currentTripId, id, updates);
+    
+    if (result.success) {
+        // Mettre à jour localement
+        let items;
+        if (type === 'hotel') {
+            items = app.hotels;
+        } else if (type === 'restaurant') {
+            items = app.restaurants;
+        } else {
+            items = app.activities;
+        }
+
+        const item = items.find(i => i.id === id);
+        if (item) {
+            item.date = '';
+            if (type === 'hotel') {
+                item.endDate = '';
+            }
+        }
+        
+        // Re-render
+        app.renderAll();
+        Dashboard.update(app.hotels, app.restaurants, app.activities);
+        
+        // Fermer la modal
+        closeModal('quickDateModal');
+        currentQuickDateItem = null;
+    } else {
+        alert('Erreur: ' + result.error);
+    }
 }
 
 // ===== FONCTIONS GLOBALES =====
@@ -603,97 +815,13 @@ function toggleFabMenu() {
     NavigationManager.toggleFabMenu();
 }
 
-// ===== QUICK DATE MODAL =====
-
-let currentQuickDateItem = null;
-
-function openQuickDateModal(id, type, event) {
-    event.stopPropagation();
-    
-    const items = type === 'restaurant' ? app.restaurants : app.activities;
-    const item = items.find(i => i.id === id);
-    
-    if (!item) return;
-    
-    currentQuickDateItem = { id, type, item };
-    
-    // Pré-remplir avec la date existante si disponible
-    const quickDateInput = document.getElementById('quickDate');
-    const removeBtn = document.getElementById('removeQuickDateBtn');
-    
-    if (item.date) {
-        quickDateInput.value = item.date;
-        removeBtn.style.display = 'block'; // Afficher le bouton supprimer
-    } else {
-        quickDateInput.value = '';
-        removeBtn.style.display = 'none'; // Cacher le bouton supprimer
-    }
-    
-    document.getElementById('quickDateModal').classList.add('active');
-    quickDateInput.focus();
+function closeFabMenu() {
+    NavigationManager.closeFabMenu();
 }
 
-async function saveQuickDate() {
-    if (!currentQuickDateItem) return;
-    
-    const newDate = document.getElementById('quickDate').value;
-    
-    if (!newDate) {
-        alert('Veuillez sélectionner une date');
-        return;
-    }
-    
-    const { id, type } = currentQuickDateItem;
-    
-    // Mettre à jour dans Firebase
-    const result = await FirebaseService.updateActivity(currentTripId, id, { date: newDate });
-    
-    if (result.success) {
-        // Mettre à jour localement
-        const items = type === 'restaurant' ? app.restaurants : app.activities;
-        const item = items.find(i => i.id === id);
-        if (item) {
-            item.date = newDate;
-        }
-        
-        // Re-render
-        app.renderAll();
-        Dashboard.update(app.restaurants, app.activities);
-        
-        // Fermer la modal
-        closeModal('quickDateModal');
-        currentQuickDateItem = null;
-    } else {
-        alert('Erreur: ' + result.error);
-    }
-}
-
-async function removeQuickDate() {
-    if (!currentQuickDateItem) return;
-    
-    if (!confirm('Voulez-vous vraiment supprimer cette date ?')) return;
-    
-    const { id, type } = currentQuickDateItem;
-    
-    // Mettre à jour dans Firebase (date vide = suppression)
-    const result = await FirebaseService.updateActivity(currentTripId, id, { date: '' });
-    
-    if (result.success) {
-        // Mettre à jour localement
-        const items = type === 'restaurant' ? app.restaurants : app.activities;
-        const item = items.find(i => i.id === id);
-        if (item) {
-            item.date = '';
-        }
-        
-        // Re-render
-        app.renderAll();
-        Dashboard.update(app.restaurants, app.activities);
-        
-        // Fermer la modal
-        closeModal('quickDateModal');
-        currentQuickDateItem = null;
-    } else {
-        alert('Erreur: ' + result.error);
+async function signOut() {
+    if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+        await FirebaseService.signOut();
+        window.location.href = 'login.html';
     }
 }

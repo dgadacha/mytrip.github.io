@@ -5,6 +5,7 @@ class Activity {
         category,
         price = null,
         date = null,
+        endDate = null, // pour les hôtels
         priority = 'normal',
         googleMapsUrl = null,
         photoUrl = null,
@@ -21,6 +22,7 @@ class Activity {
         this.category = category;
         this.price = price;
         this.date = date;
+        this.endDate = endDate; // pour les hôtels
         this.priority = priority;
         this.googleMapsUrl = googleMapsUrl;
         this.photoUrl = photoUrl;

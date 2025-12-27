@@ -1,8 +1,44 @@
 const CalendarView = {
-    render(restaurants, activities) {
+    render(hotels, restaurants, activities) {
         const container = document.getElementById('calendarView');
-        // Filtrer uniquement les items avec une date
-        const allItems = [...restaurants, ...activities].filter(item => item.date);
+        
+        // Fonction pour générer les dates d'un hôtel
+        const expandHotelDates = (hotel) => {
+            if (!hotel.endDate || hotel.date === hotel.endDate) {
+                return [hotel]; // Une seule nuit
+            }
+            
+            const items = [];
+            const startDate = new Date(hotel.date);
+            const endDate = new Date(hotel.endDate);
+            
+            // Générer une entrée par jour (du check-in au check-out - 1)
+            let currentDate = new Date(startDate);
+            while (currentDate < endDate) {
+                items.push({
+                    ...hotel,
+                    date: currentDate.toISOString(),
+                    endDate: hotel.endDate,  // Conserver endDate pour le check-out
+                    _isHotelNight: true,
+                    _nightNumber: items.length + 1,
+                    _totalNights: Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))
+                });
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            return items;
+        };
+        
+        // Éclater les hôtels et combiner avec restos/activités
+        const expandedHotels = hotels.flatMap(hotel => 
+            hotel.date ? expandHotelDates(hotel) : []
+        );
+        
+        const allItems = [
+            ...expandedHotels,
+            ...restaurants.filter(item => item.date),
+            ...activities.filter(item => item.date)
+        ];
         
         if (allItems.length === 0) {
             container.innerHTML = `
@@ -42,7 +78,7 @@ const CalendarView = {
             const monthName = date.toLocaleDateString('fr-FR', { month: 'long' });
             
             html += `
-                <div class="timeline-day">
+                <div class="timeline-day" data-date="${dateKey}">
                     <div class="timeline-date-header">
                         <div class="timeline-day-name">${dayName}</div>
                         <div class="timeline-day-number">${dayNumber}</div>
@@ -54,9 +90,36 @@ const CalendarView = {
             dayItems.forEach(item => {
                 const priorityClass = item.priority && item.priority !== 'normal' ? `priority-${item.priority}` : '';
                 const doneClass = item.isDone ? 'done' : '';
-                const price = item.type === 'restaurant' ? item.price : item.price;
+                const price = item.price;
                 const itemDate = new Date(item.date);
-                const timeString = itemDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                
+                // Gestion de l'heure pour l'affichage
+                let timeString = itemDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                
+                // Pour les hôtels : afficher l'heure différemment selon la nuit
+                if (item._isHotelNight) {
+                    if (item._nightNumber === 1) {
+                        // Première nuit : afficher heure de check-in
+                        timeString = `Check-in ${timeString}`;
+                    } else if (item._nightNumber === item._totalNights) {
+                        // Dernière nuit : afficher heure de check-out (= endDate)
+                        if (item.endDate) {
+                            const checkoutDate = new Date(item.endDate);
+                            timeString = `Check-out ${checkoutDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+                        } else {
+                            timeString = 'Toute la journée';
+                        }
+                    } else {
+                        // Nuits intermédiaires
+                        timeString = 'Toute la journée';
+                    }
+                }
+                
+                // Nom de l'item (avec nuit X/Y pour les hôtels)
+                let itemName = item.name;
+                if (item._isHotelNight && item._totalNights > 1) {
+                    itemName = `${item.name} (Nuit ${item._nightNumber}/${item._totalNights})`;
+                }
                 
                 // Badges de priorité
                 let priorityBadge = '';
@@ -137,12 +200,12 @@ const CalendarView = {
                         
                         <div class="timeline-card-content">
                             <div class="timeline-time">${timeString}</div>
-                            <div class="timeline-card-title">${item.name}</div>
+                            <div class="timeline-card-title">${itemName}</div>
                             <div class="timeline-card-city">${item.city}</div>
                             ${item.notes ? `
                                 <div class="timeline-card-notes">${item.notes}</div>
                             ` : ''}
-                            ${price ? `
+                            ${price && !item._isHotelNight ? `
                                 <div class="timeline-card-price">${price.toLocaleString()}¥</div>
                             ` : ''}
                         </div>
@@ -159,21 +222,7 @@ const CalendarView = {
         
         html += '</div>';
         
-        // Ajouter les indicateurs
-        if (sortedDates.length > 1) {
-            html += '<div class="timeline-indicators">';
-            sortedDates.forEach((dateKey, index) => {
-                html += `<div class="timeline-indicator ${index === 0 ? 'active' : ''}" onclick="scrollToDay(${index})"></div>`;
-            });
-            html += '</div>';
-        }
-        
         container.innerHTML = html;
-        
-        // Setup scroll listener pour les indicateurs
-        if (sortedDates.length > 1) {
-            this.setupScrollListener();
-        }
         
         // Forcer le rendu des icônes Lucide
         setTimeout(() => {
@@ -185,31 +234,33 @@ const CalendarView = {
                 });
             }
         }, 10);
+
+        // Scroller vers aujourd'hui si le jour existe
+        this.scrollToToday();
     },
 
-    setupScrollListener() {
-        const timelineContainer = document.querySelector('.timeline-container');
-        const indicators = document.querySelectorAll('.timeline-indicator');
+    scrollToToday() {
+        const today = new Date();
+        const todayKey = today.toISOString().split('T')[0];
         
-        if (!timelineContainer || indicators.length === 0) return;
+        const timelineDays = document.querySelectorAll('.timeline-day');
+        if (timelineDays.length === 0) return;
         
-        timelineContainer.addEventListener('scroll', () => {
-            const scrollLeft = timelineContainer.scrollLeft;
-            const dayWidth = timelineContainer.scrollWidth / indicators.length;
-            const currentIndex = Math.round(scrollLeft / dayWidth);
-            
-            indicators.forEach((indicator, index) => {
-                if (index === currentIndex) {
-                    indicator.classList.add('active');
-                } else {
-                    indicator.classList.remove('active');
-                }
-            });
+        let todayIndex = -1;
+        timelineDays.forEach((dayElement, index) => {
+            if (dayElement.dataset.date === todayKey) {
+                todayIndex = index;
+            }
         });
+        
+        if (todayIndex !== -1) {
+            setTimeout(() => {
+                scrollToDay(todayIndex);
+            }, 150);
+        }
     }
 };
 
-// Fonction globale pour scroller vers un jour spécifique
 function scrollToDay(index) {
     const timelineContainer = document.querySelector('.timeline-container');
     if (!timelineContainer) return;
