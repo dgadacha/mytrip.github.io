@@ -14,34 +14,28 @@ const FirebaseService = {
     },
 
     async initialize() {
-        if (this.initialized) return;
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyD0Y8R7qsmZ28R-RL-9AdW9s3so2GCGbSc",
-            authDomain: "vacayo-d40d5.firebaseapp.com",
-            projectId: "vacayo-d40d5",
-            storageBucket: "vacayo-d40d5.firebasestorage.app",
-            messagingSenderId: "660187115623",
-            appId: "1:660187115623:web:8b0de48fdbda2db4e28b3e"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        this.auth = firebase.auth();
-        this.db = firebase.firestore();
-        
-        // ACTIVER LA PERSISTENCE (cache local)
         try {
-            await this.db.enablePersistence({ synchronizeTabs: true });
-            console.log('✅ Persistence Firestore activée');
-        } catch (err) {
-            if (err.code === 'failed-precondition') {
-                console.warn('⚠️ Persistence impossible : plusieurs onglets ouverts');
-            } else if (err.code === 'unimplemented') {
-                console.warn('⚠️ Persistence non supportée par ce navigateur');
-            }
+            this.app = firebase.initializeApp(this.config);
+            this.db = firebase.firestore();
+            this.auth = firebase.auth();
+            
+            console.log('✅ Firebase initialisé');
+            
+            this.auth.onAuthStateChanged(async user => {
+                if (user) {
+                    this.currentUser = user;
+                    await this.ensureUserDocument(user);
+                    console.log('👤 Utilisateur connecté:', user.email);
+                    this.onUserLoggedIn(user);
+                } else {
+                    this.currentUser = null;
+                    console.log('👤 Utilisateur déconnecté');
+                    this.onUserLoggedOut();
+                }
+            });
+        } catch (error) {
+            console.error('❌ Erreur initialisation Firebase:', error);
         }
-        
-        this.initialized = true;
     },
 
     // ===== AUTHENTIFICATION =====
