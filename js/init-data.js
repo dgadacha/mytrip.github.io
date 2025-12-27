@@ -1,4 +1,5 @@
-{
+// Données initiales
+const initialData = {
   "restaurants": [
     {
       "id": "resto_1766711627220_oxu4f4a3h",
@@ -514,6 +515,12 @@
       "isDone": false,
       "type": "activity"
     }
-  ],
-  "exportDate": "2025-12-26T09:26:37.996Z"
+  ]
+};
+
+// Si pas de données, initialise
+if (!localStorage.getItem('japanTripRestaurants') && !localStorage.getItem('japanTripActivities')) {
+    localStorage.setItem('japanTripRestaurants', JSON.stringify(initialData.restaurants));
+    localStorage.setItem('japanTripActivities', JSON.stringify(initialData.activities));
+    console.log('✅ Données initiales chargées dans localStorage');
 }

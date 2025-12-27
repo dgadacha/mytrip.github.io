@@ -1,8 +1,8 @@
-# 🚀 TRIPLINE - Documentation Projet
+# 🚀 VACAYO - Documentation Projet
 
 ## 📋 Vue d'ensemble
 
-**Tripline** est une application web de planification de voyages avec un design minimaliste Apple en mode clair, adoptant une interface moderne et épurée.
+**Vacayo** est une application web de planification de voyages avec un design minimaliste Apple en mode clair, adoptant une interface moderne et épurée.
 
 **Tagline :** "Your trips, on a timeline"
 
@@ -30,50 +30,179 @@ Créer un **trip planner universel** (multi-voyages) pour planifier n'importe qu
 ## 🏗️ Architecture Technique
 
 ### Stack actuel
-- **Frontend :** HTML5 + CSS3 + JavaScript vanilla
+- **Frontend :** HTML5 + CSS3 + JavaScript vanilla (architecture modulaire)
 - **Storage :** localStorage (client-side uniquement)
 - **Icons :** Lucide Icons (open-source, style Apple)
-- **Fichiers :**
-  - `index.html` - Application complète standalone
-  - Pas de data.json séparé (localStorage uniquement)
+- **Structure :**
+```
+  /
+  ├── index.html
+  ├── styles.css
+  ├── init-data.js (données initiales)
+  ├── js/
+  │   ├── models/
+  │   │   └── Activity.js (classe unique pour restos & activités)
+  │   ├── services/
+  │   │   └── storage.js (gestion localStorage/import/export)
+  │   ├── ui/
+  │   │   ├── theme.js (gestion du thème)
+  │   │   ├── modal.js (gestion des modals)
+  │   │   └── navigation.js (tabs, bottom nav, FAB)
+  │   ├── components/
+  │   │   ├── dashboard.js (stats dashboard)
+  │   │   ├── list.js (rendu listes)
+  │   │   └── calendar.js (rendu calendrier)
+  │   ├── utils/
+  │   │   ├── helpers.js (fonctions utilitaires)
+  │   │   └── sort.js (tri et filtrage)
+  │   └── app.js (point d'entrée principal)
+  └── CLAUDE.md (cette documentation)
+```
+
+### Architecture modulaire (sans modules ES6)
+- **Pas d'import/export ES6** (restrictions CORS environnement dev)
+- **Scripts chargés via balises `<script>`** dans l'ordre de dépendance
+- **Objets globaux** pour communication entre modules
+- **Pattern object literal** pour organiser le code
 
 ### Structure localStorage
 ```javascript
 {
-  "japanTripRestaurants": [...],
-  "japanTripActivities": [...],
+  "japanTripRestaurants": [...],  // Array d'objets Activity (type: restaurant)
+  "japanTripActivities": [...],   // Array d'objets Activity (type: activity)
   "currentSort": "none",
   "theme": "light"
 }
 ```
 
-### Classes principales
+### Classe principale (refactorisée)
 ```javascript
-class Restaurant {
-  constructor(name, city, cuisine, priceRange, googleMapsUrl, photoUrl, 
-              tiktokLink, notes, isReserved, reservationDate, priority, 
-              bookingUrl, id, isDone)
-}
-
 class Activity {
-  constructor(name, city, category, date, time, duration, cost, 
-              googleMapsUrl, photoUrl, tiktokLink, notes, isBooked, 
-              reservationDate, priority, bookingUrl, id, isDone)
+  constructor({
+    name,
+    city,
+    category,      // Unifié (cuisine pour resto, catégorie pour activité)
+    price,         // Unifié (priceRange/cost fusionnés)
+    date,          // Unifié (reservationDate/date fusionnés)
+    priority,
+    googleMapsUrl,
+    photoUrl,
+    notes,
+    isBooked,      // Unifié (isReserved fusionné)
+    bookingUrl,
+    isDone,
+    id,
+    type           // 'restaurant' ou 'activity'
+  })
 }
 ```
 
-### Fonctions principales
-- `loadData()` - Charge depuis localStorage
-- `saveData()` - Sauvegarde dans localStorage
-- `renderItems()` - Affichage des cards en grid
-- `renderCalendar()` - Timeline horizontale par jour
-- `exportData()` - Export JSON
-- `importData()` - Import JSON
-- `toggleDone()` - Marquer comme fait/pas fait
+**Changements majeurs v2.1 :**
+- ✅ Une seule classe `Activity` pour restaurants ET activités
+- ✅ Champs unifiés : `category`, `price`, `date`, `isBooked`
+- ✅ Suppression de : `cuisine`, `priceRange`, `cost`, `isReserved`, `reservationDate`, `duration`, `tiktokLink`
+- ✅ Distinction via `type: 'restaurant' | 'activity'`
+
+### Modules principaux
+
+#### **StorageService** (js/services/storage.js)
+```javascript
+- saveData(restaurants, activities)
+- loadData() // Charge localStorage ou init-data.js
+- exportData(restaurants, activities)
+- importData(callback)
+- clearAllData()
+- saveSortPreference(sortType)
+- getSortPreference()
+```
+
+#### **SortManager** (js/utils/sort.js)
+```javascript
+- applySorting(items) // Tri + items done en dernier
+- setSort(sortType)
+- getCurrentSort()
+```
+
+#### **ThemeManager** (js/ui/theme.js)
+```javascript
+- initialize()
+- toggleTheme()
+- loadTheme()
+- updateIcon(theme)
+```
+
+#### **ModalManager** (js/ui/modal.js)
+```javascript
+- openForm(type, item)
+- fillFormWithItem(item)
+- close(modalId)
+- openDetail(item)
+- generateDetailHTML(item)
+- openSettings()
+```
+
+#### **NavigationManager** (js/ui/navigation.js)
+```javascript
+- switchTab(tab)
+- bottomNavSwitch(view)
+- toggleFabMenu()
+- closeFabMenu()
+- initialize()
+```
+
+#### **Dashboard** (js/components/dashboard.js)
+```javascript
+- update(restaurants, activities)
+```
+
+#### **ListView** (js/components/list.js)
+```javascript
+- render(containerId, items)
+- renderActions(item)
+```
+
+#### **CalendarView** (js/components/calendar.js)
+```javascript
+- render(restaurants, activities)
+- renderActions(item)
+- updateIndicators()
+```
+
+#### **app** (js/app.js)
+```javascript
+- initialize()
+- saveItem(e)
+- toggleDone(id, type, event)
+- showDetailById(id, type)
+- deleteFromDetail()
+- deleteItem(id, type)
+- renderAll()
+- filterItems()
+- sortItems()
+- exportData()
+- importData()
+- clearAllData()
+```
+
+### Ordre de chargement des scripts (CRITIQUE)
+```html
+<script src="init-data.js"></script>           <!-- Données initiales -->
+<script src="js/utils/helpers.js"></script>
+<script src="js/models/Activity.js"></script>
+<script src="js/services/storage.js"></script>
+<script src="js/utils/sort.js"></script>
+<script src="js/ui/theme.js"></script>
+<script src="js/ui/modal.js"></script>
+<script src="js/ui/navigation.js"></script>
+<script src="js/components/dashboard.js"></script>
+<script src="js/components/list.js"></script>
+<script src="js/components/calendar.js"></script>
+<script src="js/app.js"></script>              <!-- Point d'entrée -->
+```
 
 ---
 
-## 🎨 Design System Tripline v2.0 (Apple Minimaliste)
+## 🎨 Design System Vacayo v2.1 (Apple Minimaliste)
 
 ### Palette de couleurs (Apple Style)
 
@@ -119,11 +248,11 @@ class Activity {
 
 ---
 
-## ✨ Features Implémentées (v2.0)
+## ✨ Features Implémentées (v2.1)
 
 ### 1. Gestion des items
 - ✅ Ajouter restaurant/activité (FAB avec menu déroulant)
-- ✅ Modifier un item
+- ✅ Modifier un item (formulaire simplifié)
 - ✅ Supprimer un item
 - ✅ Marquer comme fait/pas fait (isDone)
 - ✅ Tri automatique (items faits en bas avec opacité 0.5)
@@ -137,19 +266,19 @@ class Activity {
 - **Badge priorité** au-dessus du nom dans les cards
 
 ### 3. Organisation
-- **Tabs :** Tout / Restaurants / Activités / Calendrier / Par Ville
+- **Tabs :** Tout / Restaurants / Activités / Calendrier ~~/ Par Ville~~ (supprimé)
 - **Tri :** Par défaut, priorité, prix croissant/décroissant, nom A-Z
 - **Filtres :** Recherche + ville + tri (design Apple mobile-first)
 
 ### 4. Vues disponibles
 - **Liste Grid** - Cards photo en haut (280px min-width, responsive)
 - **Timeline Calendrier** - Carousel horizontal par jour avec indicateurs ronds
-- **Par ville** - Groupé par ville puis district
+- ~~**Par ville**~~ - Supprimé (redondant avec filtres)
 
 ### 5. Interface moderne Apple
 
 #### Header
-- Logo Tripline avec icône avion
+- Logo Vacayo avec icône avion
 - Theme toggle (soleil/lune)
 - Settings button (modal)
 
@@ -181,6 +310,12 @@ class Activity {
 - Icônes Lucide avec labels
 - Fixed en bas avec backdrop blur
 
+#### Formulaire simplifié
+- **Champs unifiés** : Catégorie, Prix, Date
+- **Pas de champs conditionnels** restaurant/activité
+- **Un seul formulaire** pour les deux types
+- **Labels adaptatifs** selon le type
+
 #### Settings Modal
 - Export JSON
 - Import JSON
@@ -198,52 +333,51 @@ class Activity {
 - ✅ Import JSON (upload fichier)
 - ✅ Clear all data (avec confirmation)
 
+### 8. Initialisation des données
+- ✅ Fichier `init-data.js` pour données initiales
+- ✅ Chargement automatique au premier lancement
+- ✅ Évite problème CORS avec data.json
+- ✅ Données compatibles avec nouvelle classe Activity
+
 ---
 
-## 📂 Structure de données
+## 📂 Structure de données (v2.1)
 
-### Restaurant
+### Format unifié (Activity)
 ```json
 {
   "id": "resto_xxx",
   "name": "Sushi Tokami",
   "city": "Tokyo - Ginza",
-  "cuisine": "Omakase",
-  "priceRange": 20000,
+  "category": "Omakase",
+  "price": 20000,
+  "date": "2026-01-10T19:00",
+  "priority": "high",
   "googleMapsUrl": "https://...",
   "photoUrl": "https://...",
-  "tiktokLink": "",
   "notes": "Excellent rapport qualité/prix",
-  "isReserved": false,
-  "reservationDate": "2026-01-10T19:00",
-  "priority": "high",
+  "isBooked": false,
   "bookingUrl": "https://...",
-  "type": "restaurant",
-  "isDone": false
+  "isDone": false,
+  "type": "restaurant"
 }
 ```
-
-### Activity
 ```json
 {
   "id": "activity_xxx",
   "name": "TeamLab Borderless",
   "city": "Tokyo - Odaiba",
   "category": "Musée digital",
-  "date": "2026-01-15",
-  "time": "14:00",
-  "duration": 2.5,
-  "cost": 3200,
+  "price": 3200,
+  "date": "2026-01-15T14:00",
+  "priority": "must-do",
   "googleMapsUrl": "https://...",
-  "photoUrl": "",
-  "tiktokLink": "",
+  "photoUrl": "https://...",
   "notes": "Réservation en ligne recommandée",
   "isBooked": false,
-  "reservationDate": "",
-  "priority": "must-do",
-  "bookingUrl": "",
-  "type": "activity",
-  "isDone": false
+  "bookingUrl": "https://...",
+  "isDone": false,
+  "type": "activity"
 }
 ```
 
@@ -266,8 +400,7 @@ class Activity {
       "endDate": "2026-01-30",
       "currency": "¥",
       "budget": 500000,
-      "restaurants": [...],
-      "activities": [...]
+      "items": [...]  // Array unifié d'Activity
     }
   ],
   "currentTripId": "trip_123",
@@ -350,13 +483,22 @@ Budget utilisé : 125,000¥ / 500,000¥
 ```
 Structure repo:
 ├── index.html
+├── styles.css
+├── init-data.js
+├── js/
+│   ├── models/
+│   ├── services/
+│   ├── ui/
+│   ├── components/
+│   ├── utils/
+│   └── app.js
 └── README.md
 ```
 
 **Setup :**
-1. Upload le fichier sur GitHub
+1. Upload les fichiers sur GitHub
 2. Settings → Pages → Source: main branch
-3. URL finale : `https://username.github.io/tripline`
+3. URL finale : `https://username.github.io/vacayo`
 
 ### Alternatives
 - **Netlify Drop** - Drag & drop instantané
@@ -395,6 +537,7 @@ Pour version payante :
 - Données perdues si cache navigateur vidé
 - Pas de backup automatique (export JSON manuel)
 - Timeline fonctionne mieux avec dates complètes (date + heure)
+- Architecture modulaire sans ES6 modules (restrictions CORS dev)
 
 ---
 
@@ -431,6 +574,25 @@ Pour version payante :
 - Privacy-first (données locales)
 - Migration future vers backend possible
 
+### Pourquoi une seule classe Activity ?
+- Code plus simple et maintenable
+- Pas de duplication de logique
+- Champs unifiés cohérents
+- Facilite l'ajout de nouveaux types d'items
+- Formulaire simplifié
+
+### Pourquoi architecture modulaire sans ES6 ?
+- Évite problèmes CORS en développement local
+- Compatible tous navigateurs
+- Pattern object literal familier
+- Migration facile vers modules ES6 plus tard
+
+### Pourquoi init-data.js au lieu de data.json ?
+- Évite fetch() et problèmes CORS
+- Chargement synchrone au démarrage
+- Données initiales intégrées au bundle
+- Pas de requête réseau nécessaire
+
 ---
 
 ## 🔧 Comment continuer le projet
@@ -438,9 +600,14 @@ Pour version payante :
 ### Si tu reprends le projet dans une nouvelle conversation :
 
 1. **Lire ce fichier CLAUDE.md** pour comprendre le contexte
-2. **Charger index.html** pour voir le code actuel
-3. **Tester l'app** pour comprendre l'UX actuelle
-4. **Vérifier le design Apple** : fond blanc, icônes Lucide, timeline carousel
+2. **Charger les fichiers principaux** :
+   - `index.html`
+   - `styles.css`
+   - `js/app.js`
+   - `js/models/Activity.js`
+3. **Comprendre l'architecture modulaire** sans ES6 modules
+4. **Tester l'app** pour comprendre l'UX actuelle
+5. **Vérifier le design Apple** : fond blanc, icônes Lucide, timeline carousel
 
 ### Prochaines tâches suggérées (par ordre de priorité) :
 
@@ -449,6 +616,7 @@ Pour version payante :
 2. Page d'accueil avec liste des voyages
 3. Création/édition/suppression de trips
 4. Switch entre trips
+5. Breadcrumb navigation
 
 **Phase 2 - Smart Features**
 1. Budget tracker avec progress bar
@@ -496,8 +664,8 @@ Pour version payante :
 
 **Créateur :** Dylan  
 **Date de création :** Décembre 2025  
-**Dernière mise à jour :** 26 décembre 2025  
-**Version actuelle :** v2.0 (Apple Redesign + Timeline)
+**Dernière mise à jour :** 27 décembre 2025  
+**Version actuelle :** v2.1 (Refacto Architecture + Classe unique)
 
 ---
 
@@ -512,6 +680,7 @@ Pour version payante :
 - UX intuitive
 - Pas de bullshit features
 - Privacy-first
+- Code maintenable
 
 **Non-négociables :**
 - Pas de tracking utilisateur
@@ -519,6 +688,7 @@ Pour version payante :
 - Données en local (privacy)
 - Open source potentiel (à décider)
 - Design cohérent et épuré
+- Architecture modulaire claire
 
 ---
 
@@ -534,6 +704,9 @@ Pour version payante :
 - [x] isDone feature
 - [x] Search & Filters mobile-first
 - [x] Dark mode
+- [x] Architecture modulaire propre
+- [x] Classe Activity unifiée
+- [x] Formulaire simplifié
 - [ ] Multi-voyages
 - [ ] Landing page
 - [ ] Documentation utilisateur
@@ -541,7 +714,7 @@ Pour version payante :
 - [ ] PWA setup (offline)
 
 ### Marketing
-- [ ] Nom de domaine (tripline.app)
+- [ ] Nom de domaine (vacayo.app)
 - [ ] Logo professionnel
 - [ ] Screenshots
 - [ ] Video demo
@@ -552,6 +725,16 @@ Pour version payante :
 ---
 
 ## 🎨 Design Changelog
+
+### v2.1 (27 décembre 2025) - Refacto Architecture
+- ✅ Architecture modulaire sans ES6 modules
+- ✅ Classe unique `Activity` (restaurants + activités)
+- ✅ Champs unifiés : category, price, date, isBooked
+- ✅ Formulaire simplifié (un seul pour tout)
+- ✅ Suppression vue "Par ville" (redondant)
+- ✅ Fichier init-data.js (évite CORS)
+- ✅ Code séparé en modules logiques
+- ✅ Amélioration maintenabilité
 
 ### v2.0 (26 décembre 2025) - Apple Redesign
 - ✅ Migration vers design Apple minimaliste
@@ -567,7 +750,7 @@ Pour version payante :
 - ✅ Notes en ellipsis (2 lignes)
 
 ### v1.0 (Décembre 2025) - MVP Initial
-- ✅ Flat Design bleu Tripline
+- ✅ Flat Design bleu Vacayo
 - ✅ FAB avec menu déroulant
 - ✅ Dashboard avec stats
 - ✅ 5 vues (Tout/Restaurants/Activités/Calendrier/Par Ville)
