@@ -2,11 +2,14 @@ const Dashboard = {
     update(restaurants, activities) {
         document.getElementById('totalRestaurants').textContent = restaurants.length;
         document.getElementById('totalActivities').textContent = activities.length;
-
-        const totalBudget = [...restaurants, ...activities].reduce((sum, item) => sum + (item.price || 0), 0);
+        
+        // Budget uniquement pour les items avec une date
+        const itemsWithDate = [...restaurants, ...activities].filter(item => item.date);
+        const totalBudget = itemsWithDate.reduce((sum, item) => sum + (item.price || 0), 0);
         document.getElementById('totalBudget').textContent = totalBudget.toLocaleString() + '¥';
-
-        const totalReservations = [...restaurants, ...activities].filter(item => item.isBooked).length;
-        document.getElementById('totalReservations').textContent = totalReservations;
+        
+        // Réservés = items avec date (ceux au calendrier)
+        const totalReservations = itemsWithDate.length;
+        document.getElementById('totalReserved').textContent = totalReservations;
     }
 };

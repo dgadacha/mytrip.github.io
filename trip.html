@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voyage - Vacayo</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Loader initial -->
+    <div id="initialLoader" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+        <div class="spinner-large"></div>
+    </div>
+
+    <!-- App container (caché au départ) -->
+    <div id="appContainer" style="display: none;">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <h1 id="tripName">Vacayo</h1>
+                </div>
+                <div class="header-actions">
+                    <button onclick="goToTrips()" class="icon-btn" title="Retour aux voyages">
+                        <i data-lucide="arrow-left"></i>
+                    </button>
+                    <button onclick="openInviteModal()" class="icon-btn" title="Inviter des participants" id="inviteBtn" style="display: none;">
+                        <i data-lucide="user-plus"></i>
+                    </button>
+                    <button onclick="toggleTheme()" class="theme-toggle" title="Changer le thème">
+                        <i data-lucide="moon" id="themeIcon"></i>
+                    </button>
+                    <button onclick="openSettings()" class="icon-btn" title="Paramètres">
+                        <i data-lucide="settings"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard">
+            <div class="stat-card">
+                <h3>Restaurants</h3>
+                <div class="number" id="totalRestaurants">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Activités</h3>
+                <div class="number" id="totalActivities">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Réservés</h3>
+                <div class="number" id="totalReserved">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Budget</h3>
+                <div class="number" id="totalBudget">0¥</div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher...">
+            </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="filters-bar">
+            <select id="cityFilter" class="filter-select">
+                <option value="">Toutes les villes</option>
+            </select>
+            <select id="sortSelect" class="filter-select">
+                <option value="none">Tri par défaut</option>
+                <option value="priority">Par priorité</option>
+                <option value="price-asc">Prix croissant</option>
+                <option value="price-desc">Prix décroissant</option>
+                <option value="name">Par nom (A-Z)</option>
+            </select>
+        </div>
+
+        <!-- Tabs Desktop -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('all')">
+                <i data-lucide="layout-grid" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Tout
+            </button>
+            <button class="tab" onclick="switchTab('restaurants')">
+                <i data-lucide="utensils" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Restaurants
+            </button>
+            <button class="tab" onclick="switchTab('activities')">
+                <i data-lucide="compass" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Activités
+            </button>
+            <button class="tab" onclick="switchTab('calendar')">
+                <i data-lucide="calendar" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Calendrier
+            </button>
+        </div>
+
+        <!-- Content Sections -->
+        <div id="allContent" class="content-section active">
+            <div class="items-list" id="allItems"></div>
+        </div>
+
+        <div id="restaurantsContent" class="content-section">
+            <div class="items-list" id="restaurantItems"></div>
+        </div>
+
+        <div id="activitiesContent" class="content-section">
+            <div class="items-list" id="activityItems"></div>
+        </div>
+
+        <div id="calendarContent" class="content-section">
+            <div id="calendarView"></div>
+        </div>
+
+        <!-- Bottom Navigation Mobile -->
+        <div class="bottom-nav">
+            <button class="bottom-nav-item active" onclick="bottomNavSwitch('all')">
+                <i data-lucide="layout-grid" class="icon"></i>
+                <span>Tout</span>
+            </button>
+            <button class="bottom-nav-item" onclick="bottomNavSwitch('restaurants')">
+                <i data-lucide="utensils" class="icon"></i>
+                <span>Restaurants</span>
+            </button>
+            <button class="bottom-nav-item" onclick="bottomNavSwitch('activities')">
+                <i data-lucide="compass" class="icon"></i>
+                <span>Activités</span>
+            </button>
+            <button class="bottom-nav-item" onclick="bottomNavSwitch('calendar')">
+                <i data-lucide="calendar" class="icon"></i>
+                <span>Calendrier</span>
+            </button>
+        </div>
+
+        <!-- FAB -->
+        <button class="fab" onclick="toggleFabMenu()">
+            <i data-lucide="plus"></i>
+        </button>
+
+        <div class="fab-menu" id="fabMenu">
+            <button class="fab-option" onclick="openForm('restaurant')">
+                <i data-lucide="utensils" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Ajouter un restaurant
+            </button>
+            <button class="fab-option" onclick="openForm('activity')">
+                <i data-lucide="compass" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Ajouter une activité
+            </button>
+        </div>
+
+        <!-- Modal Form -->
+        <div id="formModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalTitle">Ajouter un Restaurant</h2>
+                    <button class="close-btn" onclick="closeModal('formModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="itemForm">
+                        <input type="hidden" id="itemId">
+                        <input type="hidden" id="itemType">
+
+                        <div class="form-group">
+                            <label for="itemName">Nom *</label>
+                            <input type="text" id="itemName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="itemCity">Ville *</label>
+                            <select id="itemCity" required>
+                                <option value="">Sélectionner...</option>
+                                <optgroup label="Tokyo">
+                                    <option value="Tokyo">Tokyo (général)</option>
+                                    <option value="Tokyo - Shibuya">Tokyo - Shibuya</option>
+                                    <option value="Tokyo - Shinjuku">Tokyo - Shinjuku</option>
+                                    <option value="Tokyo - Ikebukuro">Tokyo - Ikebukuro</option>
+                                    <option value="Tokyo - Ginza">Tokyo - Ginza</option>
+                                    <option value="Tokyo - Harajuku">Tokyo - Harajuku</option>
+                                    <option value="Tokyo - Akihabara">Tokyo - Akihabara</option>
+                                    <option value="Tokyo - Asakusa">Tokyo - Asakusa</option>
+                                    <option value="Tokyo - Roppongi">Tokyo - Roppongi</option>
+                                    <option value="Tokyo - Odaiba">Tokyo - Odaiba</option>
+                                </optgroup>
+                                <optgroup label="Sapporo">
+                                    <option value="Sapporo">Sapporo (général)</option>
+                                    <option value="Sapporo - Susukino">Sapporo - Susukino</option>
+                                    <option value="Sapporo - Odori">Sapporo - Odori</option>
+                                    <option value="Sapporo - Tanukikoji">Sapporo - Tanukikoji</option>
+                                </optgroup>
+                                <optgroup label="Seoul">
+                                    <option value="Seoul">Seoul (général)</option>
+                                    <option value="Seoul - Gangnam">Seoul - Gangnam</option>
+                                    <option value="Seoul - Hongdae">Seoul - Hongdae</option>
+                                    <option value="Seoul - Myeongdong">Seoul - Myeongdong</option>
+                                    <option value="Seoul - Itaewon">Seoul - Itaewon</option>
+                                    <option value="Seoul - Insadong">Seoul - Insadong</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="category" id="categoryLabel">Catégorie</label>
+                            <input type="text" id="category" placeholder="Ex: Omakase, Ramen, Temple, Shopping...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="price">Prix (¥)</label>
+                            <input type="number" id="price" placeholder="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="googleMapsUrl">Google Maps (URL)</label>
+                            <input type="url" id="googleMapsUrl" placeholder="https://maps.app.goo.gl/...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bookingUrl">Lien de réservation (URL)</label>
+                            <input type="url" id="bookingUrl" placeholder="https://...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="photoUrl">Photo (URL)</label>
+                            <input type="url" id="photoUrl" placeholder="https://...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="priority">Priorité</label>
+                            <select id="priority">
+                                <option value="must-do">Must-Do (Incontournable)</option>
+                                <option value="high">Haute</option>
+                                <option value="normal" selected>Normale</option>
+                                <option value="low">Basse</option>
+                                <option value="optional">Optionnel</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notes">Notes</label>
+                            <textarea id="notes" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="isBooked">
+                                <span id="bookedLabel">Réservé</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group" id="reservationDateGroup" style="display: none;">
+                            <label for="reservationDate">Date</label>
+                            <input type="datetime-local" id="reservationDate">
+                        </div>
+                    </form>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" onclick="saveItem(event)" style="flex: 2;">Enregistrer</button>
+                    <button type="button" class="btn" onclick="closeModal('formModal')">Annuler</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Detail -->
+        <div id="detailModal" class="modal detail-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="detailTitle">Détails</h2>
+                    <button class="close-btn" onclick="closeModal('detailModal')">&times;</button>
+                </div>
+                <div class="modal-body" id="detailContent">
+                    <!-- Contenu dynamique -->
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" onclick="editFromDetail()">Modifier</button>
+                    <button type="button" class="btn" onclick="deleteFromDetail()" style="background: var(--error); color: white;">Supprimer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Paramètres</h2>
+                    <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button class="btn btn-primary" onclick="exportData()">
+                            <i data-lucide="download" style="width: 20px; height: 20px;"></i>
+                            Exporter les données (JSON)
+                        </button>
+                        <button class="btn" onclick="document.getElementById('importFile').click()">
+                            <i data-lucide="upload" style="width: 20px; height: 20px;"></i>
+                            Importer des données
+                        </button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                        <button class="btn" onclick="clearAllData()" style="background: var(--error); color: white;">
+                            <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                            Supprimer toutes les données
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Invitation -->
+        <div id="inviteModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Inviter un participant</h2>
+                    <button class="close-btn" onclick="closeModal('inviteModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="inviteForm">
+                        <div class="form-group">
+                            <label for="inviteEmail">Email du participant *</label>
+                            <input type="email" id="inviteEmail" required placeholder="example@email.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inviteRole">Rôle</label>
+                            <select id="inviteRole" required>
+                                <option value="viewer">Lecteur (peut seulement consulter)</option>
+                                <option value="editor">Éditeur (peut ajouter/modifier)</option>
+                            </select>
+                        </div>
+
+                        <div id="inviteSuccess" style="display: none; background: rgba(52, 199, 89, 0.1); color: var(--success); padding: 12px; border-radius: 10px; margin-top: 16px;">
+                            <p style="margin: 0; font-size: 0.875rem;" id="inviteSuccessMessage"></p>
+                        </div>
+
+                        <div id="inviteError" style="display: none; background: rgba(255, 59, 48, 0.1); color: var(--error); padding: 12px; border-radius: 10px; margin-top: 16px;">
+                            <p style="margin: 0; font-size: 0.875rem;" id="inviteErrorMessage"></p>
+                        </div>
+                    </form>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" onclick="sendInvite()" id="sendInviteBtn">Envoyer l'invitation</button>
+                    <button type="button" class="btn" onclick="closeModal('inviteModal')">Fermer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Quick Date -->
+        <div id="quickDateModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Définir une date</h2>
+                    <button class="close-btn" onclick="closeModal('quickDateModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="quickDate">Date et heure</label>
+                        <input type="datetime-local" id="quickDate">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" onclick="saveQuickDate()" style="flex: 2;" title="Enregistrer">
+                        <i data-lucide="check" style="width: 20px; height: 20px;"></i>
+                    </button>
+                    <button type="button" class="btn" id="removeQuickDateBtn" onclick="removeQuickDate()" style="background: var(--error); color: white; display: none;" title="Supprimer la date">
+                        <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                    </button>
+                    <button type="button" class="btn" onclick="closeModal('quickDateModal')" title="Annuler">
+                        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- Fin appContainer -->
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Nos scripts dans l'ordre -->
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/models/Activity.js"></script>
+    <script src="js/models/Trip.js"></script>
+    <script src="js/services/firebase.js"></script>
+    <script src="js/services/storage.js"></script>
+    <script src="js/utils/sort.js"></script>
+    <script src="js/ui/theme.js"></script>
+    <script src="js/ui/modal.js"></script>
+    <script src="js/ui/navigation.js"></script>
+    <script src="js/components/dashboard.js"></script>
+    <script src="js/components/list.js"></script>
+    <script src="js/components/calendar.js"></script>
+    <script src="js/trip.js"></script>
+</body>
+</html>

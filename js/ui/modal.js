@@ -3,6 +3,12 @@ const ModalManager = {
     currentDetailItem: null,
 
     openForm(type, item = null) {
+        // Vérifier les permissions
+        if (currentTrip && !currentTrip.canEdit()) {
+            alert('Vous n\'avez pas la permission de modifier ce voyage');
+            return;
+        }
+        
         const modal = document.getElementById('formModal');
         const form = document.getElementById('itemForm');
         const modalTitle = document.getElementById('modalTitle');
@@ -51,7 +57,10 @@ const ModalManager = {
     },
 
     close(modalId) {
-        document.getElementById(modalId).classList.remove('active');
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+        }
         this.currentEditId = null;
         this.currentDetailItem = null;
     },
@@ -60,15 +69,40 @@ const ModalManager = {
         this.currentDetailItem = item;
         const modal = document.getElementById('detailModal');
         const title = document.getElementById('detailTitle');
-        const body = document.getElementById('detailBody');
+        const body = document.getElementById('detailContent');
 
         title.textContent = item.name;
         body.innerHTML = this.generateDetailHTML(item);
+        
+        // Stocker l'ID et le type pour les boutons
+        body.dataset.itemId = item.id;
+        body.dataset.itemType = item.type;
+        
+        // Gérer les permissions pour les boutons d'action
+        const canEdit = currentTrip ? currentTrip.canEdit() : true;
+        const formActions = modal.querySelector('.form-actions');
+        
+        if (!canEdit && formActions) {
+            formActions.innerHTML = `
+                <button type="button" class="btn btn-primary" onclick="closeModal('detailModal')" style="flex: 1;">
+                    Fermer
+                </button>
+            `;
+        } else if (formActions) {
+            formActions.innerHTML = `
+                <button type="button" class="btn btn-primary" onclick="editFromDetail()">Modifier</button>
+                <button type="button" class="btn" onclick="deleteFromDetail()" style="background: var(--error); color: white;">Supprimer</button>
+            `;
+        }
         
         modal.classList.add('active');
 
         if (item.tiktokLink && this.extractTikTokVideoId(item.tiktokLink)) {
             this.loadTikTokEmbed();
+        }
+        
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
         }
     },
 
@@ -102,7 +136,14 @@ const ModalManager = {
             html += `
                 <div class="detail-section">
                     <label>Date</label>
-                    <div class="value">${new Date(item.date).toLocaleDateString('fr-FR')}</div>
+                    <div class="value">${new Date(item.date).toLocaleString('fr-FR', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</div>
                 </div>
             `;
         }
@@ -114,6 +155,19 @@ const ModalManager = {
                     <div class="value">
                         <a href="${item.googleMapsUrl}" target="_blank" class="address-link">
                             📍 Ouvrir dans Google Maps
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (item.bookingUrl) {
+            html += `
+                <div class="detail-section">
+                    <label>Réservation</label>
+                    <div class="value">
+                        <a href="${item.bookingUrl}" target="_blank" class="address-link">
+                            🔗 Lien de réservation
                         </a>
                     </div>
                 </div>
@@ -146,7 +200,18 @@ const ModalManager = {
             html += `
                 <div class="detail-section">
                     <label>Notes</label>
-                    <div class="value">${item.notes}</div>
+                    <div class="value" style="white-space: pre-wrap;">${item.notes}</div>
+                </div>
+            `;
+        }
+
+        if (item.photoUrl) {
+            html += `
+                <div class="detail-section">
+                    <label>Photo</label>
+                    <div class="value">
+                        <img src="${item.photoUrl}" alt="${item.name}" class="detail-photo" style="width: 100%; border-radius: 12px; margin-top: 8px;">
+                    </div>
                 </div>
             `;
         }
@@ -172,38 +237,46 @@ const ModalManager = {
 
     openSettings() {
         const modal = document.getElementById('settingsModal');
-        modal.classList.add('active');
-        lucide.createIcons();
+        if (modal) {
+            modal.classList.add('active');
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
     }
 };
 
-// Fonctions globales pour être appelées depuis le HTML
-function openModal(type, item = null) {
-    ModalManager.openForm(type, item);
-}
-
-function closeModal(modalId) {
-    ModalManager.close(modalId);
-}
-
-function showDetail(item) {
-    ModalManager.openDetail(item);
-}
-
-function editFromDetail() {
-    const itemToEdit = ModalManager.currentDetailItem;
-    ModalManager.close('detailModal');
-    setTimeout(() => {
-        ModalManager.openForm(itemToEdit.type, itemToEdit);
-    }, 100);
-}
-
-function deleteFromDetail() {
-    if (app) {
-        app.deleteFromDetail();
+// Fonctions globales pour être appelées depuis le HTML (déjà définies dans trip.js)
+if (typeof openModal === 'undefined') {
+    function openModal(type, item = null) {
+        ModalManager.openForm(type, item);
     }
 }
 
-function openSettings() {
-    ModalManager.openSettings();
+if (typeof closeModal === 'undefined') {
+    function closeModal(modalId) {
+        ModalManager.close(modalId);
+    }
+}
+
+if (typeof showDetail === 'undefined') {
+    function showDetail(item) {
+        ModalManager.openDetail(item);
+    }
+}
+
+if (typeof editFromDetail === 'undefined') {
+    function editFromDetail() {
+        const itemToEdit = ModalManager.currentDetailItem;
+        ModalManager.close('detailModal');
+        setTimeout(() => {
+            ModalManager.openForm(itemToEdit.type, itemToEdit);
+        }, 100);
+    }
+}
+
+if (typeof openSettings === 'undefined') {
+    function openSettings() {
+        ModalManager.openSettings();
+    }
 }
