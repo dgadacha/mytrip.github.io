@@ -3,9 +3,11 @@ class Trip {
         id = null,
         name,
         destination = '',
+        country = '',
         startDate = '',
         endDate = '',
         currency = '€',
+        currencySymbol = '€',
         budget = 0,
         coverImage = '',
         members = {},
@@ -17,9 +19,11 @@ class Trip {
         this.id = id || this.generateId();
         this.name = name;
         this.destination = destination;
+        this.country = country;
         this.startDate = startDate;
         this.endDate = endDate;
         this.currency = currency;
+        this.currencySymbol = currencySymbol;
         this.budget = budget;
         this.coverImage = coverImage;
         this.members = members;
@@ -101,9 +105,11 @@ class Trip {
         return {
             name: this.name,
             destination: this.destination,
+            country: this.country,
             startDate: this.startDate,
             endDate: this.endDate,
             currency: this.currency,
+            currencySymbol: this.currencySymbol,
             budget: this.budget,
             coverImage: this.coverImage,
             members: this.members,

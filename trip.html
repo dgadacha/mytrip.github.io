@@ -176,35 +176,15 @@
 
                         <div class="form-group">
                             <label for="itemCity">Ville *</label>
-                            <select id="itemCity" required>
-                                <option value="">Sélectionner...</option>
-                                <optgroup label="Tokyo">
-                                    <option value="Tokyo">Tokyo (général)</option>
-                                    <option value="Tokyo - Shibuya">Tokyo - Shibuya</option>
-                                    <option value="Tokyo - Shinjuku">Tokyo - Shinjuku</option>
-                                    <option value="Tokyo - Ikebukuro">Tokyo - Ikebukuro</option>
-                                    <option value="Tokyo - Ginza">Tokyo - Ginza</option>
-                                    <option value="Tokyo - Harajuku">Tokyo - Harajuku</option>
-                                    <option value="Tokyo - Akihabara">Tokyo - Akihabara</option>
-                                    <option value="Tokyo - Asakusa">Tokyo - Asakusa</option>
-                                    <option value="Tokyo - Roppongi">Tokyo - Roppongi</option>
-                                    <option value="Tokyo - Odaiba">Tokyo - Odaiba</option>
-                                </optgroup>
-                                <optgroup label="Sapporo">
-                                    <option value="Sapporo">Sapporo (général)</option>
-                                    <option value="Sapporo - Susukino">Sapporo - Susukino</option>
-                                    <option value="Sapporo - Odori">Sapporo - Odori</option>
-                                    <option value="Sapporo - Tanukikoji">Sapporo - Tanukikoji</option>
-                                </optgroup>
-                                <optgroup label="Seoul">
-                                    <option value="Seoul">Seoul (général)</option>
-                                    <option value="Seoul - Gangnam">Seoul - Gangnam</option>
-                                    <option value="Seoul - Hongdae">Seoul - Hongdae</option>
-                                    <option value="Seoul - Myeongdong">Seoul - Myeongdong</option>
-                                    <option value="Seoul - Itaewon">Seoul - Itaewon</option>
-                                    <option value="Seoul - Insadong">Seoul - Insadong</option>
-                                </optgroup>
-                            </select>
+                            <input type="text" 
+                                   id="itemCity" 
+                                   list="citiesList"
+                                   required 
+                                   placeholder="Ex: Tokyo - Shibuya"
+                                   autocomplete="off">
+                            <datalist id="citiesList">
+                                <!-- Rempli dynamiquement par JS selon le pays du voyage -->
+                            </datalist>
                         </div>
 
                         <div class="form-group">
@@ -398,6 +378,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script src="js/data/countries-data.js"></script>
     
     <!-- Nos scripts dans l'ordre -->
     <script src="js/utils/helpers.js"></script>

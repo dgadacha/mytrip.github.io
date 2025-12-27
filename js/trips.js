@@ -115,6 +115,11 @@ function openTrip(tripId) {
 function openCreateTripModal() {
     document.getElementById('createTripModal').classList.add('active');
     document.getElementById('tripName').focus();
+
+    // Remplir le dropdown des pays
+    populateCountriesDropdown();
+
+    lucide.createIcons();
 }
 
 function closeCreateTripModal() {
@@ -122,33 +127,32 @@ function closeCreateTripModal() {
     document.getElementById('createTripForm').reset();
 }
 
-async function createTrip(e) {
-    e.preventDefault();
+async function createTrip(event) {
+    event.preventDefault();
     
-    const name = document.getElementById('tripName').value.trim();
-    const destination = document.getElementById('tripDestination').value.trim();
+    const name = document.getElementById('tripName').value;
+    const destination = document.getElementById('tripDestination').value;
+    const country = document.getElementById('tripCountry').value;
     const startDate = document.getElementById('tripStartDate').value;
     const endDate = document.getElementById('tripEndDate').value;
     const currency = document.getElementById('tripCurrency').value;
+    const currencySymbol = document.getElementById('tripCurrencySymbol').value;
     const budget = parseInt(document.getElementById('tripBudget').value) || 0;
-    const coverImage = document.getElementById('tripCoverImage').value.trim();
+    const coverImage = document.getElementById('tripCoverImage').value;
     
-    if (!name) {
-        alert('Le nom du voyage est requis');
-        return;
-    }
-    
-    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
-        alert('La date de fin doit être après la date de début');
+    if (!country) {
+        alert('Veuillez sélectionner un pays');
         return;
     }
     
     const tripData = {
         name,
         destination,
+        country,
         startDate,
         endDate,
-        currency,
+        currency: currency || 'EUR',
+        currencySymbol: currencySymbol || '€',
         budget,
         coverImage
     };
@@ -157,9 +161,9 @@ async function createTrip(e) {
     
     if (result.success) {
         closeCreateTripModal();
-        await loadTrips();
+        loadTrips();
     } else {
-        alert('Erreur lors de la création du voyage: ' + result.error);
+        alert('Erreur lors de la création du voyage : ' + result.error);
     }
 }
 
@@ -293,4 +297,41 @@ async function signOut() {
 
 function toggleTheme() {
     ThemeManager.toggleTheme();
+}
+
+// ===== GESTION DES PAYS ET DEVISES =====
+
+function populateCountriesDropdown() {
+    const select = document.getElementById('tripCountry');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Sélectionnez un pays</option>';
+    
+    COUNTRIES_DATA.countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country.name;
+        option.textContent = country.name;
+        option.dataset.currency = country.currency;
+        option.dataset.currencySymbol = country.currencySymbol;
+        select.appendChild(option);
+    });
+}
+
+function updateCurrencyFromCountry() {
+    const countrySelect = document.getElementById('tripCountry');
+    const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+    
+    if (!selectedOption || !selectedOption.value) {
+        document.getElementById('tripCurrencyDisplay').value = '';
+        document.getElementById('tripCurrency').value = '';
+        document.getElementById('tripCurrencySymbol').value = '';
+        return;
+    }
+    
+    const currency = selectedOption.dataset.currency;
+    const currencySymbol = selectedOption.dataset.currencySymbol;
+    
+    document.getElementById('tripCurrencyDisplay').value = `${currency} (${currencySymbol})`;
+    document.getElementById('tripCurrency').value = currency;
+    document.getElementById('tripCurrencySymbol').value = currencySymbol;
 }

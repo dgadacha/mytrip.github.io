@@ -380,6 +380,7 @@ trip.html?id=xxx (détail voyage)
   - Nuits intermédiaires : "Toute la journée"
   - Dernière nuit : "Check-out 11:00"
 - ✅ **Budget** : Prix compté une seule fois (pas multiplié par nuits)
+- ✅ **Modal détail** : Affiche Check-in et Check-out séparément
 
 #### **Restaurants** 🍽️
 - ✅ **Date unique** : Réservation avec heure
@@ -414,6 +415,7 @@ trip.html?id=xxx (détail voyage)
   - "Tokyo - Shibuya" filtre uniquement "Tokyo - Shibuya"
 - ✅ **Tri** : Par défaut, priorité, prix, nom A-Z
 - ✅ **Items done** : Affichés en dernier avec opacité réduite
+- ✅ **Persistence des filtres** : Les filtres restent actifs après ajout/modification/suppression
 
 ### 6. Calendrier Timeline (Instagram-style)
 
@@ -449,6 +451,12 @@ trip.html?id=xxx (détail voyage)
 - ✅ **Validation** : Date fin après date début
 - ✅ **Actions** : ✓ Enregistrer / 🗑️ Supprimer / ✕ Annuler
 
+#### **Modal détail**
+- ✅ **Affichage adaptatif** : Check-in/Check-out pour hôtels, Date pour restaurants/activités
+- ✅ **Retours à la ligne** : `white-space: pre-line` pour afficher les notes avec retours à la ligne
+- ✅ **Labels adaptés** : "Type de cuisine" pour restaurants, "Nom de l'hôtel" pour hôtels, "Catégorie" pour activités
+- ✅ **Permissions** : Boutons Modifier/Supprimer masqués pour viewers
+
 #### **Modal invitations**
 - ✅ **Champ email** : Input email avec validation
 - ✅ **Choix rôle** : Editor / Viewer
@@ -459,8 +467,11 @@ trip.html?id=xxx (détail voyage)
 - ✅ **Photo full-width** en haut (140px)
 - ✅ **Badge priorité** : Position absolute top-left
 - ✅ **Structure** : Titre / Ville / Notes (ellipsis 2 lignes) / Prix
+- ✅ **Boutons toujours en bas** : Même sans notes grâce à flexbox
+- ✅ **Séparateur visuel** : Ligne au-dessus des boutons
+- ✅ **Retours à la ligne** : Notes affichées avec `white-space: pre-line`
 - ✅ **Boutons actions** :
-  - Items non faits : ✓ Fait + 📍 Maps + 🔗 Réservation
+  - Items non faits : ✓ Fait + 📅 Date + 📍 Maps + 🔗 Réservation
   - Items faits : ↩ Annuler (pleine largeur)
 - ✅ **Quick Date** : Bouton 📅 (gris ou bleu selon présence date)
 
@@ -555,6 +566,38 @@ if (!currentTrip.canEdit()) {
 }
 ```
 
+### Gestion intelligente des filtres
+```javascript
+// renderAll() appelle toujours filterItems() pour préserver les filtres actifs
+renderAll() {
+    this.updateCityFilter();  // Met à jour les villes disponibles
+    this.filterItems();       // Réapplique les filtres actifs
+    Dashboard.update(this.hotels, this.restaurants, this.activities);
+}
+```
+
+### Cards avec boutons toujours en bas
+```css
+/* Timeline cards dans les listes */
+.items-list .timeline-card {
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.items-list .timeline-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.items-list .timeline-card-actions {
+    margin-top: auto;
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+}
+```
+
 ---
 
 ## 📂 Structure de données (v3.0 Firebase)
@@ -589,7 +632,7 @@ if (!currentTrip.canEdit()) {
   "priority": "normal",
   "googleMapsUrl": "https://...",
   "photoUrl": "https://...",
-  "notes": "Proche de la gare",
+  "notes": "Proche de la gare\nVue sur le parc",
   "isBooked": true,
   "bookingUrl": "https://...",
   "isDone": false,
@@ -614,7 +657,7 @@ if (!currentTrip.canEdit()) {
   "priority": "high",
   "googleMapsUrl": "https://...",
   "photoUrl": "https://...",
-  "notes": "Réservation 1 mois avant",
+  "notes": "Réservation 1 mois avant\nComptoir uniquement",
   "isBooked": false,
   "bookingUrl": "https://...",
   "isDone": false,
@@ -816,6 +859,12 @@ Pour version payante :
 - **Navigation rapide** : Pas besoin de scroller manuellement
 - **UX familière** : Comme Google Calendar
 
+### Pourquoi renderAll() appelle filterItems() ?
+- **Persistence des filtres** : Les filtres restent actifs après modifications
+- **UX cohérente** : Pas de surprise pour l'utilisateur
+- **Code centralisé** : Un seul endroit pour gérer le rendu
+- **Moins de bugs** : Pas besoin de se rappeler d'appeler filterItems() partout
+
 ---
 
 ## 🔧 Comment continuer le projet
@@ -888,7 +937,7 @@ Pour version payante :
 **Créateur :** Dylan  
 **Date de création :** Décembre 2025  
 **Dernière mise à jour :** 27 décembre 2025  
-**Version actuelle :** v3.0 (Firebase Multi-voyages + Collaboration)
+**Version actuelle :** v3.1 (Optimisations UX + Filtres persistants)
 
 ---
 
@@ -915,7 +964,7 @@ Pour version payante :
 
 ---
 
-## ✅ Checklist MVP v3.0
+## ✅ Checklist MVP v3.1
 
 ### Core Features
 - [x] Authentification Firebase
@@ -929,6 +978,9 @@ Pour version payante :
 - [x] Export/Import JSON
 - [x] Dark mode
 - [x] Mobile-first design
+- [x] Filtres persistants
+- [x] Boutons cards toujours en bas
+- [x] Retours à la ligne dans notes
 
 ### À faire
 - [ ] Listeners temps réel
@@ -942,6 +994,15 @@ Pour version payante :
 ---
 
 ## 🎨 Design Changelog
+
+### v3.1 (27 décembre 2025) - Optimisations UX + Filtres persistants
+- ✅ **Filtres persistants** : Les filtres restent actifs après ajout/modification/suppression
+- ✅ **Boutons cards toujours en bas** : Flexbox pour forcer les boutons en bas même sans notes
+- ✅ **Retours à la ligne notes** : `white-space: pre-line` pour afficher les sauts de ligne
+- ✅ **Modal détail hôtels** : Affichage séparé Check-in et Check-out
+- ✅ **Architecture centralisée** : `renderAll()` appelle toujours `filterItems()` pour cohérence
+- ✅ **Fix filtre ville** : Mise à jour automatique de la liste des villes disponibles
+- ✅ **Séparateur visuel** : Ligne au-dessus des boutons d'action dans les cards
 
 ### v3.0 (27 décembre 2025) - Firebase Multi-voyages + Collaboration
 - ✅ Migration complète vers Firebase (Firestore + Auth)

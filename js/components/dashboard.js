@@ -7,7 +7,9 @@ const Dashboard = {
         // Budget uniquement pour les items avec une date
         const itemsWithDate = [...hotels, ...restaurants, ...activities].filter(item => item.date);
         const totalBudget = itemsWithDate.reduce((sum, item) => sum + (item.price || 0), 0);
-        document.getElementById('totalBudget').textContent = totalBudget.toLocaleString() + '¥';
+        
+        const currencySymbol = currentTrip?.currencySymbol || '¥';
+        document.getElementById('totalBudget').textContent = totalBudget.toLocaleString() + currencySymbol;
         
         // Réservés = items avec date (ceux au calendrier)
         const totalReservations = itemsWithDate.length;

@@ -152,10 +152,11 @@ const ModalManager = {
         }
 
         if (item.price) {
+            const currencySymbol = currentTrip?.currencySymbol || '¥';
             html += `
                 <div class="detail-section">
                     <label>${item.type === 'restaurant' ? 'Budget' : 'Prix'}</label>
-                    <div class="value">${item.price.toLocaleString()}¥</div>
+                    <div class="value">${item.price.toLocaleString()}${currencySymbol}</div>
                 </div>
             `;
         }

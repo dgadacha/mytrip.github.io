@@ -1,6 +1,7 @@
 const CalendarView = {
     render(hotels, restaurants, activities) {
         const container = document.getElementById('calendarView');
+        const currencySymbol = currentTrip?.currencySymbol || '¥';
         
         // Fonction pour générer les dates d'un hôtel
         const expandHotelDates = (hotel) => {
@@ -206,7 +207,7 @@ const CalendarView = {
                                 <div class="timeline-card-notes">${item.notes}</div>
                             ` : ''}
                             ${price && !item._isHotelNight ? `
-                                <div class="timeline-card-price">${price.toLocaleString()}¥</div>
+                                <div class="timeline-card-price">${item.price.toLocaleString()}${currencySymbol}</div>
                             ` : ''}
                         </div>
                         ${actionButtons}

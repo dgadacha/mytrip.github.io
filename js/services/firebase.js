@@ -85,22 +85,36 @@ const FirebaseService = {
 
     async createTrip(tripData) {
         try {
-            const userId = this.auth.currentUser.uid;
-            
-            const members = {};
-            members[userId] = 'owner';
-            
-            const tripRef = await this.db.collection('trips').add({
-                ...tripData,
-                createdBy: userId,
-                members: members,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            const user = this.auth.currentUser;
+            if (!user) return { success: false, error: 'Non authentifié' };
+
+            const trip = new Trip({
+                name: tripData.name,
+                destination: tripData.destination || '',
+                country: tripData.country || '',
+                startDate: tripData.startDate || '',
+                endDate: tripData.endDate || '',
+                currency: tripData.currency || 'EUR',
+                currencySymbol: tripData.currencySymbol || '€',
+                budget: tripData.budget || 0,
+                coverImage: tripData.coverImage || '',
+                members: {
+                    [user.uid]: 'owner'
+                },
+                createdBy: user.uid
             });
 
-            return { success: true, id: tripRef.id };
+            const firestoreData = {
+                ...trip.toFirestore(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            const docRef = await this.db.collection('trips').add(firestoreData);
+            
+            return { success: true, id: docRef.id };
         } catch (error) {
-            console.error('❌ Erreur création trip:', error);
+            console.error('Erreur création trip:', error);
             return { success: false, error: error.message };
         }
     },

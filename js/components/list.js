@@ -12,6 +12,7 @@ const ListView = {
         }
 
         const canEdit = currentTrip ? currentTrip.canEdit() : true;
+        const currencySymbol = currentTrip?.currencySymbol || '¥';
         
         container.innerHTML = items.map(item => {
             const priorityClass = item.priority && item.priority !== 'normal' ? `priority-${item.priority}` : '';
@@ -107,7 +108,7 @@ const ListView = {
                             <div class="timeline-card-notes">${item.notes}</div>
                         ` : ''}
                         ${price ? `
-                            <div class="timeline-card-price">${price.toLocaleString()}¥</div>
+                            <div class="timeline-card-price">${price.toLocaleString()}${currencySymbol}</div>
                         ` : ''}
                     </div>
                     ${actionButtons}

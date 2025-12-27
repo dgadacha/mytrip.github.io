@@ -343,39 +343,41 @@
                         <label for="tripName">Nom du voyage *</label>
                         <input type="text" id="tripName" required placeholder="Ex: Japon 2026">
                     </div>
-
                     <div class="form-group">
                         <label for="tripDestination">Destination</label>
                         <input type="text" id="tripDestination" placeholder="Ex: Tokyo, Kyoto, Osaka">
                     </div>
-
+                    
+                    <!-- NOUVEAU BLOC PAYS -->
+                    <div class="form-group">
+                        <label for="tripCountry">Pays *</label>
+                        <select id="tripCountry" required onchange="updateCurrencyFromCountry()">
+                            <option value="">Sélectionnez un pays</option>
+                            <!-- Rempli dynamiquement par JS -->
+                        </select>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="tripStartDate">Date de début</label>
                         <input type="date" id="tripStartDate">
                     </div>
-
                     <div class="form-group">
                         <label for="tripEndDate">Date de fin</label>
                         <input type="date" id="tripEndDate">
                     </div>
-
+                    
+                    <!-- DEVISE MODIFIÉE -->
                     <div class="form-group">
                         <label for="tripCurrency">Devise</label>
-                        <select id="tripCurrency">
-                            <option value="€">€ - Euro</option>
-                            <option value="$">$ - Dollar US</option>
-                            <option value="£">£ - Livre Sterling</option>
-                            <option value="¥" selected>¥ - Yen</option>
-                            <option value="₩">₩ - Won</option>
-                            <option value="CHF">CHF - Franc Suisse</option>
-                        </select>
+                        <input type="text" id="tripCurrencyDisplay" readonly placeholder="Sera définie automatiquement" style="background: var(--bg-tertiary); cursor: not-allowed;">
+                        <input type="hidden" id="tripCurrency">
+                        <input type="hidden" id="tripCurrencySymbol">
                     </div>
-
+                    
                     <div class="form-group">
                         <label for="tripBudget">Budget</label>
                         <input type="number" id="tripBudget" placeholder="0" min="0">
                     </div>
-
                     <div class="form-group">
                         <label for="tripCoverImage">Photo de couverture (URL)</label>
                         <input type="url" id="tripCoverImage" placeholder="https://...">
@@ -409,6 +411,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script src="js/data/countries-data.js"></script>
     
     <script src="js/models/Trip.js"></script>
     <script src="js/services/firebase.js"></script>

@@ -44,6 +44,11 @@ async function loadTrip() {
     
     // Convertir en instance de Trip pour avoir accès aux méthodes
     currentTrip = new Trip(result.trip);
+
+    // Charger les villes du pays du voyage
+    if (currentTrip.country) {
+        loadCitiesForCountry(currentTrip.country);
+    }
     
     // Mettre à jour le titre de la page et le header
     document.title = currentTrip.name + ' - Vacayo';
@@ -155,23 +160,48 @@ const app = {
     },
 
     updateCityFilter() {
-        const cities = new Set();
-        [...this.hotels, ...this.restaurants, ...this.activities].forEach(item => {
-            if (item.city) cities.add(item.city);
-        });
-
         const cityFilter = document.getElementById('cityFilter');
+        if (!cityFilter) return;
+        
+        // Sauvegarder la valeur actuelle
         const currentValue = cityFilter.value;
         
+        // Récupérer les villes du pays du voyage
+        const countryCities = currentTrip?.country ? COUNTRIES_DATA.getCitiesForCountry(currentTrip.country) : [];
+        
+        // Collecter toutes les villes UTILISÉES dans les activités
+        const usedCities = new Set();
+        [...this.hotels, ...this.restaurants, ...this.activities].forEach(item => {
+            if (item.city) usedCities.add(item.city);
+        });
+        
+        // Combiner les villes du pays + villes utilisées (pour garder les anciennes)
+        const allCities = new Set([...countryCities, ...usedCities]);
+        
+        // Trier les villes
+        const sortedCities = Array.from(allCities).sort();
+        
+        // Vider complètement le select
         cityFilter.innerHTML = '<option value="">Toutes les villes</option>';
-        Array.from(cities).sort().forEach(city => {
+        
+        // Ajouter les options
+        sortedCities.forEach(city => {
             const option = document.createElement('option');
             option.value = city;
             option.textContent = city;
             cityFilter.appendChild(option);
         });
         
-        cityFilter.value = currentValue;
+        // Restaurer la valeur si elle existe encore, sinon reset
+        if (currentValue && sortedCities.includes(currentValue)) {
+            cityFilter.value = currentValue;
+        } else {
+            cityFilter.value = '';
+            // Si on a reset le filtre, il faut réappliquer les filtres
+            if (currentValue) {
+                this.filterItems();
+            }
+        }
     },
 
     filterItems() {
@@ -820,4 +850,22 @@ async function signOut() {
         await FirebaseService.signOut();
         window.location.href = 'login.html';
     }
+}
+
+// ===== GESTION DES VILLES =====
+
+function loadCitiesForCountry(countryName) {
+    const cities = COUNTRIES_DATA.getCitiesForCountry(countryName);
+    
+    const datalist = document.getElementById('citiesList');
+    if (!datalist) return;
+    
+    datalist.innerHTML = '';
+    cities.forEach(city => {
+        const option = document.createElement('option');
+        option.value = city;
+        datalist.appendChild(option);
+    });
+    
+    console.log(`✅ ${cities.length} villes chargées pour ${countryName}`);
 }
