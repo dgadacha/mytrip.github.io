@@ -28,7 +28,7 @@
                     <button onclick="openInviteModal()" class="icon-btn" title="Inviter des participants" id="inviteBtn" style="display: none;">
                         <i data-lucide="user-plus"></i>
                     </button>
-                    <button onclick="toggleTheme()" class="theme-toggle" title="Changer le thème">
+                    <button onclick="toggleTheme()" class="icon-btn" title="Changer le thème">
                         <i data-lucide="moon" id="themeIcon"></i>
                     </button>
                     <button onclick="openSettings()" class="icon-btn" title="Paramètres">
@@ -41,16 +41,16 @@
         <!-- Dashboard -->
         <div class="dashboard" id="dashboard">
             <div class="stat-card">
+                <h3>Hôtels</h3>
+                <div class="number" id="totalHotels">0</div>
+            </div>
+            <div class="stat-card">
                 <h3>Restaurants</h3>
                 <div class="number" id="totalRestaurants">0</div>
             </div>
             <div class="stat-card">
                 <h3>Activités</h3>
                 <div class="number" id="totalActivities">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Réservés</h3>
-                <div class="number" id="totalReserved">0</div>
             </div>
             <div class="stat-card">
                 <h3>Budget</h3>
@@ -82,9 +82,9 @@
 
         <!-- Tabs Desktop -->
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('all')">
-                <i data-lucide="layout-grid" style="width: 16px; height: 16px; margin-right: 6px;"></i>
-                Tout
+            <button class="tab active" onclick="switchTab('hotels')">
+                <i data-lucide="bed" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Hôtels
             </button>
             <button class="tab" onclick="switchTab('restaurants')">
                 <i data-lucide="utensils" style="width: 16px; height: 16px; margin-right: 6px;"></i>
@@ -101,8 +101,8 @@
         </div>
 
         <!-- Content Sections -->
-        <div id="allContent" class="content-section active">
-            <div class="items-list" id="allItems"></div>
+        <div id="hotelsContent" class="content-section active">
+            <div class="items-list" id="hotelItems"></div>
         </div>
 
         <div id="restaurantsContent" class="content-section">
@@ -119,9 +119,9 @@
 
         <!-- Bottom Navigation Mobile -->
         <div class="bottom-nav">
-            <button class="bottom-nav-item active" onclick="bottomNavSwitch('all')">
-                <i data-lucide="layout-grid" class="icon"></i>
-                <span>Tout</span>
+            <button class="bottom-nav-item active" onclick="bottomNavSwitch('hotels')">
+                <i data-lucide="bed" class="icon"></i>
+                <span>Hôtels</span>
             </button>
             <button class="bottom-nav-item" onclick="bottomNavSwitch('restaurants')">
                 <i data-lucide="utensils" class="icon"></i>
@@ -143,13 +143,17 @@
         </button>
 
         <div class="fab-menu" id="fabMenu">
+             <button class="fab-option" onclick="openForm('hotel'); closeFabMenu();">
+                <i data-lucide="bed" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+                Hôtel
+            </button>
             <button class="fab-option" onclick="openForm('restaurant')">
                 <i data-lucide="utensils" style="width: 16px; height: 16px; margin-right: 6px;"></i>
-                Ajouter un restaurant
+                Restaurant
             </button>
             <button class="fab-option" onclick="openForm('activity')">
                 <i data-lucide="compass" style="width: 16px; height: 16px; margin-right: 6px;"></i>
-                Ajouter une activité
+                Activité
             </button>
         </div>
 
@@ -245,15 +249,21 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="reservationDate" id="reservationDateLabel">Date</label>
+                            <input type="datetime-local" id="reservationDate">
+                        </div>
+
+                        <!-- Date de fin pour les hôtels -->
+                        <div class="form-group" id="endDateGroup" style="display: none;">
+                            <label for="endDate">Date de fin (Check-out)</label>
+                            <input type="datetime-local" id="endDate">
+                        </div>
+
+                        <div class="form-group">
                             <label>
                                 <input type="checkbox" id="isBooked">
                                 <span id="bookedLabel">Réservé</span>
                             </label>
-                        </div>
-
-                        <div class="form-group" id="reservationDateGroup" style="display: none;">
-                            <label for="reservationDate">Date</label>
-                            <input type="datetime-local" id="reservationDate">
                         </div>
                     </form>
                 </div>
@@ -303,6 +313,10 @@
                             <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
                             Supprimer toutes les données
                         </button>
+                        <button class="btn btn-secondary" onclick="signOut()">
+                            <i data-lucide="log-out" style="width: 20px; height: 20px;"></i>
+                            Se déconnecter
+                        </button>
                     </div>
                 </div>
             </div>
@@ -346,32 +360,37 @@
             </div>
         </div>
 
-        <!-- Modal Quick Date -->
-        <div id="quickDateModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title">Définir une date</h2>
-                    <button class="close-btn" onclick="closeModal('quickDateModal')">&times;</button>
+    <!-- Modal Quick Date -->
+    <div id="quickDateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="quickDateModalTitle">Définir une date</h2>
+                <button class="close-btn" onclick="closeModal('quickDateModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="quickDate" id="quickDateLabel">Date et heure</label>
+                    <input type="datetime-local" id="quickDate">
                 </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="quickDate">Date et heure</label>
-                        <input type="datetime-local" id="quickDate">
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-primary" onclick="saveQuickDate()" style="flex: 2;" title="Enregistrer">
-                        <i data-lucide="check" style="width: 20px; height: 20px;"></i>
-                    </button>
-                    <button type="button" class="btn" id="removeQuickDateBtn" onclick="removeQuickDate()" style="background: var(--error); color: white; display: none;" title="Supprimer la date">
-                        <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
-                    </button>
-                    <button type="button" class="btn" onclick="closeModal('quickDateModal')" title="Annuler">
-                        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-                    </button>
+                <!-- Date de fin pour les hôtels -->
+                <div class="form-group" id="quickEndDateGroup" style="display: none;">
+                    <label for="quickEndDate">Date de fin (Check-out)</label>
+                    <input type="datetime-local" id="quickEndDate">
                 </div>
             </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" onclick="saveQuickDate()" style="flex: 2;" title="Enregistrer">
+                    <i data-lucide="check" style="width: 20px; height: 20px;"></i>
+                </button>
+                <button type="button" class="btn" id="removeQuickDateBtn" onclick="removeQuickDate()" style="background: var(--error); color: white; display: none;" title="Supprimer la date">
+                    <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                </button>
+                <button type="button" class="btn" onclick="closeModal('quickDateModal')" title="Annuler">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
         </div>
+    </div>
 
     </div> <!-- Fin appContainer -->
 

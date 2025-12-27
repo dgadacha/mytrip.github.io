@@ -8,7 +8,7 @@ const NavigationManager = {
         document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
         
         const contentMap = {
-            'all': 'allContent',
+            'hotels': 'hotelsContent',
             'restaurants': 'restaurantsContent',
             'activities': 'activitiesContent',
             'calendar': 'calendarContent'
@@ -17,6 +17,13 @@ const NavigationManager = {
         const contentId = contentMap[tab];
         if (contentId) {
             document.getElementById(contentId).classList.add('active');
+        }
+        
+        // Si on active le calendrier, scroller vers aujourd'hui
+        if (tab === 'calendar' && typeof CalendarView !== 'undefined') {
+            setTimeout(() => {
+                CalendarView.scrollToToday();
+            }, 100);
         }
         
         if (typeof lucide !== 'undefined') {
@@ -33,7 +40,7 @@ const NavigationManager = {
         // Trouver et activer le bon item
         const items = document.querySelectorAll('.bottom-nav-item');
         items.forEach((item, index) => {
-            const views = ['all', 'restaurants', 'activities', 'calendar'];
+            const views = ['hotels', 'restaurants', 'activities', 'calendar'];
             if (views[index] === view) {
                 item.classList.add('active');
             }
@@ -43,7 +50,7 @@ const NavigationManager = {
         document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
         
         const contentMap = {
-            'all': 'allContent',
+            'hotels': 'hotelsContent',
             'restaurants': 'restaurantsContent',
             'activities': 'activitiesContent',
             'calendar': 'calendarContent'
@@ -52,6 +59,13 @@ const NavigationManager = {
         const contentId = contentMap[view];
         if (contentId) {
             document.getElementById(contentId).classList.add('active');
+        }
+        
+        // Si on active le calendrier, scroller vers aujourd'hui
+        if (view === 'calendar' && typeof CalendarView !== 'undefined') {
+            setTimeout(() => {
+                CalendarView.scrollToToday();
+            }, 100);
         }
         
         // Scroll to top

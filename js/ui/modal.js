@@ -13,23 +13,45 @@ const ModalManager = {
         const form = document.getElementById('itemForm');
         const modalTitle = document.getElementById('modalTitle');
         const categoryLabel = document.getElementById('categoryLabel');
+        const reservationDateLabel = document.getElementById('reservationDateLabel');
         const bookedLabel = document.getElementById('bookedLabel');
+        const endDateGroup = document.getElementById('endDateGroup');
         
         form.reset();
         this.currentEditId = null;
 
-        if (type === 'restaurant') {
+        if (type === 'hotel') {
+            modalTitle.textContent = item ? 'Modifier Hôtel' : 'Ajouter un Hôtel';
+            categoryLabel.textContent = 'Nom de l\'hôtel';
+            reservationDateLabel.textContent = 'Date de début (Check-in)';
+            bookedLabel.textContent = 'Réservé';
+            document.getElementById('itemType').value = 'hotel';
+            document.getElementById('category').placeholder = 'Ex: Hyatt, APA Hotel...';
+            
+            // Afficher la date de fin pour les hôtels
+            endDateGroup.style.display = 'block';
+            
+        } else if (type === 'restaurant') {
             modalTitle.textContent = item ? 'Modifier Restaurant' : 'Ajouter un Restaurant';
             categoryLabel.textContent = 'Type de cuisine';
+            reservationDateLabel.textContent = 'Date de réservation';
             bookedLabel.textContent = 'Réservé';
             document.getElementById('itemType').value = 'restaurant';
             document.getElementById('category').placeholder = 'Ex: Omakase, Ramen, BBQ...';
+            
+            // Masquer la date de fin
+            endDateGroup.style.display = 'none';
+            
         } else {
             modalTitle.textContent = item ? 'Modifier Activité' : 'Ajouter une Activité';
             categoryLabel.textContent = 'Catégorie';
+            reservationDateLabel.textContent = 'Date';
             bookedLabel.textContent = 'Réservé';
             document.getElementById('itemType').value = 'activity';
             document.getElementById('category').placeholder = 'Ex: Temple, Shopping, Observation...';
+            
+            // Masquer la date de fin
+            endDateGroup.style.display = 'none';
         }
 
         if (item) {
@@ -38,6 +60,7 @@ const ModalManager = {
         }
 
         modal.classList.add('active');
+        lucide.createIcons();
     },
 
     fillFormWithItem(item) {
@@ -53,7 +76,12 @@ const ModalManager = {
         document.getElementById('notes').value = item.notes || '';
         document.getElementById('isBooked').checked = item.isBooked;
         document.getElementById('reservationDate').value = item.date || '';
-        document.getElementById('reservationDateGroup').style.display = item.isBooked ? 'block' : 'none';
+        document.getElementById('endDate').value = item.endDate || '';
+        
+        // Afficher endDate si c'est un hôtel
+        if (item.type === 'hotel') {
+            document.getElementById('endDateGroup').style.display = 'block';
+        }
     },
 
     close(modalId) {
