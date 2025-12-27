@@ -1560,7 +1560,7 @@ select:focus, input:focus, textarea:focus {
 
 /* ===== FIX : Timeline cards dans les listes (pas le calendrier) ===== */
 .items-list .timeline-card {
-    min-height: 00px;
+    min-height: 320px;
     display: flex;
     flex-direction: column;
 }
@@ -1578,5 +1578,5 @@ select:focus, input:focus, textarea:focus {
 .items-list .timeline-card-actions {
     margin-top: auto;
     padding: 12px;
-    border: none;
+    border-top: 1px solid var(--border-color);
 }
