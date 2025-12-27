@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes voyages - Vacayo</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Reset minimal pour cette page */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header */
+        .trips-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            background: var(--bg-primary-alpha);
+        }
+
+        .trips-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Container */
+        .trips-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 20px 100px;
+        }
+
+        /* Grille de voyages */
+        .trips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Trip Card */
+        .trip-card {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .trip-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .trip-cover {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trip-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .trip-cover.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .trip-cover.empty svg {
+            width: 56px;
+            height: 56px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .trip-role-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .trip-content {
+            padding: 16px;
+        }
+
+        .trip-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .trip-destination {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .trip-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .trip-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            color: var(--text-secondary);
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-size: 0.9375rem;
+        }
+
+        /* Loader */
+        .loader {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner-large {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: #007AFF;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #007AFF;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,122,255,0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,122,255,0.5);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        .fab svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .trips-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .trips-header h1 {
+                font-size: 1.25rem;
+            }
+
+            .fab {
+                bottom: 80px;
+                right: 20px;
+            }
+        }
+    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="trips-header">
+        <h1>Mes voyages</h1>
+        <div class="header-actions">
+            <div class="user-info" id="userInfo">
+                <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                <span id="userEmail"></span>
+            </div>
+            <button onclick="toggleTheme()" class="icon-btn" title="Changer le thème">
+                <i data-lucide="moon" id="themeIcon"></i>
+            </button>
+            <button onclick="signOut()" class="icon-btn" title="Se déconnecter">
+                <i data-lucide="log-out"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Container principal -->
+    <div class="trips-container">
+        <!-- Loader -->
+        <div id="loader" class="loader">
+            <div class="spinner-large"></div>
+            <p style="margin-top: 16px; color: var(--text-secondary);">Chargement de vos voyages...</p>
+        </div>
+
+        <!-- Empty state -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+            </svg>
+            <h2>Aucun voyage pour le moment</h2>
+            <p>Créez votre premier voyage et commencez à planifier !</p>
+            <button onclick="openCreateTripModal()" class="btn btn-primary">
+                <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
+                Créer un voyage
+            </button>
+        </div>
+
+        <!-- Grille de voyages -->
+        <div id="tripsGrid" class="trips-grid" style="display: none;"></div>
+    </div>
+
+    <!-- FAB -->
+    <button class="fab" onclick="openCreateTripModal()" title="Créer un voyage">
+        <i data-lucide="plus"></i>
+    </button>
+
+    <!-- Modal création voyage -->
+    <div id="createTripModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Créer un voyage</h2>
+                <button class="close-btn" onclick="closeCreateTripModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createTripForm">
+                    <div class="form-group">
+                        <label for="tripName">Nom du voyage *</label>
+                        <input type="text" id="tripName" required placeholder="Ex: Japon 2026">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tripDestination">Destination</label>
+                        <input type="text" id="tripDestination" placeholder="Ex: Tokyo, Kyoto, Osaka">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tripStartDate">Date de début</label>
+                        <input type="date" id="tripStartDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tripEndDate">Date de fin</label>
+                        <input type="date" id="tripEndDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tripCurrency">Devise</label>
+                        <select id="tripCurrency">
+                            <option value="€">€ - Euro</option>
+                            <option value="$">$ - Dollar US</option>
+                            <option value="£">£ - Livre Sterling</option>
+                            <option value="¥" selected>¥ - Yen</option>
+                            <option value="₩">₩ - Won</option>
+                            <option value="CHF">CHF - Franc Suisse</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tripBudget">Budget</label>
+                        <input type="number" id="tripBudget" placeholder="0" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tripCoverImage">Photo de couverture (URL)</label>
+                        <input type="url" id="tripCoverImage" placeholder="https://...">
+                    </div>
+                </form>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" onclick="createTrip(event)" style="flex: 2;">Créer le voyage</button>
+                <button type="button" class="btn" onclick="closeCreateTripModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/models/Trip.js"></script>
+    <script src="js/services/firebase.js"></script>
+    <script src="js/ui/theme.js"></script>
+    <script src="js/trips.js"></script>
+</body>
+</html>
