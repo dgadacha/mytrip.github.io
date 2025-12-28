@@ -1,20 +1,11 @@
 const ListView = {
     render(containerId, items) {
         const container = document.getElementById(containerId);
-        
-        if (!items || items.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <p style="color: var(--text-secondary);">Aucun élément pour le moment</p>
-                </div>
-            `;
-            return;
-        }
-
         const canEdit = currentTrip ? currentTrip.canEdit() : true;
         const currencySymbol = currentTrip?.currencySymbol || '¥';
         
-        container.innerHTML = items.map(item => {
+        // Fonction pour render un seul item
+        const renderItem = (item) => {
             const priorityClass = item.priority && item.priority !== 'normal' ? `priority-${item.priority}` : '';
             const doneClass = item.isDone ? 'done' : '';
             const price = item.type === 'restaurant' ? item.price : item.price;
@@ -97,7 +88,8 @@ const ListView = {
                     ${item.photoUrl ? `
                         <img src="${item.photoUrl}" 
                              alt="${item.name}" 
-                             class="timeline-card-photo" 
+                             class="timeline-card-photo"
+                             loading="lazy"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="timeline-card-photo-placeholder" style="display: none; background: linear-gradient(135deg, ${getCategoryIcon(item.type, item.category).color}22 0%, ${getCategoryIcon(item.type, item.category).color}11 100%);">
                             <i data-lucide="${getCategoryIcon(item.type, item.category).icon}" style="color: ${getCategoryIcon(item.type, item.category).color};"></i>
@@ -121,10 +113,12 @@ const ListView = {
                     ${actionButtons}
                 </div>
             `;
-        }).join('');
+        };
         
-        // OPTIMISÉ : Scanner uniquement le container concerné
-        setTimeout(() => {
+        // NOUVEAU : Utiliser le batch renderer
+        BatchRenderer.renderInBatches(container, items, renderItem, () => {
+            // Callback appelé quand tout est rendu
+            console.log('🎨 ListView: Rendering Lucide icons...');
             if (typeof lucide !== 'undefined' && container) {
                 const icons = container.querySelectorAll('[data-lucide]');
                 if (icons.length > 0) {
@@ -132,8 +126,9 @@ const ListView = {
                         attrs: { 'stroke-width': 2 },
                         icons: icons
                     });
+                    console.log(`✅ ListView: ${icons.length} icons rendered`);
                 }
             }
-        }, 10);
+        });
     }
 };
