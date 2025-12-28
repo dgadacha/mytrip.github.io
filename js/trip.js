@@ -123,6 +123,7 @@ const app = {
     hotels: [],
     restaurants: [],
     activities: [],
+    searchTimeout: null,
     
     async initialize() {
         this.hotels = hotels;
@@ -141,11 +142,18 @@ const app = {
         lucide.createIcons();
         
         // Event listeners
-        document.getElementById('searchInput').addEventListener('input', () => this.filterItems());
+        document.getElementById('searchInput').addEventListener('input', () => this.debouncedFilter());
         document.getElementById('cityFilter').addEventListener('change', () => this.filterItems());
         document.getElementById('sortSelect').addEventListener('change', (e) => this.sortItems(e.target.value));
         
         console.log('✅ App initialisée avec Firebase');
+    },
+
+    debouncedFilter() {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+            this.filterItems();
+        }, 300); // 300ms de délai
     },
 
     renderAll() {
@@ -207,6 +215,26 @@ const app = {
     filterItems() {
         const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
         const cityFilter = document.getElementById('cityFilter')?.value || '';
+        const sortBy = SortManager.currentSort || 'none';
+
+        // DEBUG
+        console.log('🔍 Current state:', { searchTerm, cityFilter, sortBy });
+
+        // NOUVEAU : Vérifier si cet état existe en cache
+        if (FilterCache.has(searchTerm, cityFilter, sortBy)) {
+            console.log('✅ Cache hit - Skip filtering');
+            const cached = FilterCache.get(searchTerm, cityFilter, sortBy);
+            
+            ListView.render('hotelItems', cached.hotels);
+            ListView.render('restaurantItems', cached.restaurants);
+            ListView.render('activityItems', cached.activities);
+            CalendarView.render(cached.hotels, cached.restaurants, cached.activities);
+            
+            lucide.createIcons();
+            return;
+        }
+        
+        console.log('🔄 Cache miss - Computing filters');
 
         const filterItem = (item) => {
             const matchesSearch = !searchTerm || 
@@ -219,13 +247,16 @@ const app = {
             return matchesSearch && matchesCity;
         };
 
-        const filteredHotels = this.hotels.filter(filterItem);
-        const filteredRestaurants = this.restaurants.filter(filterItem);
-        const filteredActivities = this.activities.filter(filterItem);
+        const filteredHotels = SortManager.applySorting(this.hotels.filter(filterItem));
+        const filteredRestaurants = SortManager.applySorting(this.restaurants.filter(filterItem));
+        const filteredActivities = SortManager.applySorting(this.activities.filter(filterItem));
 
-        ListView.render('hotelItems', SortManager.applySorting(filteredHotels));
-        ListView.render('restaurantItems', SortManager.applySorting(filteredRestaurants));
-        ListView.render('activityItems', SortManager.applySorting(filteredActivities));
+        // NOUVEAU : Sauvegarder en cache
+        FilterCache.save(searchTerm, cityFilter, sortBy, filteredHotels, filteredRestaurants, filteredActivities);
+
+        ListView.render('hotelItems', filteredHotels);
+        ListView.render('restaurantItems', filteredRestaurants);
+        ListView.render('activityItems', filteredActivities);
         CalendarView.render(filteredHotels, filteredRestaurants, filteredActivities);
         
         lucide.createIcons();
