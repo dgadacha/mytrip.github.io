@@ -98,8 +98,15 @@ const ListView = {
                         <img src="${item.photoUrl}" 
                              alt="${item.name}" 
                              class="timeline-card-photo" 
-                             onerror="this.style.display='none'">
-                    ` : ''}
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="timeline-card-photo-placeholder" style="display: none;">
+                            <i data-lucide="${getCategoryIcon(item.type, item.category)}"></i>
+                        </div>
+                    ` : `
+                        <div class="timeline-card-photo-placeholder">
+                            <i data-lucide="${getCategoryIcon(item.type, item.category)}"></i>
+                        </div>
+                    `}
                     
                     <div class="timeline-card-content">
                         <div class="timeline-card-title">${item.name}</div>
