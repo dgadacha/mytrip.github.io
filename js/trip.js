@@ -3,6 +3,7 @@ let currentTrip = null;
 let hotels = [];
 let restaurants = [];
 let activities = [];
+let flights = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialiser Firebase
@@ -65,10 +66,11 @@ async function loadTrip() {
     if (activitiesResult.success) {
         const allActivities = activitiesResult.activities;
         
-        // Séparer hotels, restaurants et activités
+        // Séparer hotels, restaurants, flights et activités
         hotels = allActivities.filter(a => a.type === 'hotel');
         restaurants = allActivities.filter(a => a.type === 'restaurant');
         activities = allActivities.filter(a => a.type === 'activity');
+        flights = allActivities.filter(a => a.type === 'flight');
     }
     
     // Appliquer les permissions UI
@@ -123,12 +125,14 @@ const app = {
     hotels: [],
     restaurants: [],
     activities: [],
+    flights: [],
     searchTimeout: null,
     
     async initialize() {
         this.hotels = hotels;
         this.restaurants = restaurants;
         this.activities = activities;
+        this.flights = flights;
         
         // Initialiser les composants
         ThemeManager.initialize();
@@ -136,7 +140,7 @@ const app = {
         
         // Render initial
         this.renderAll();
-        Dashboard.update(this.hotels, this.restaurants, this.activities);
+        Dashboard.update(this.hotels, this.restaurants, this.activities, this.flights);
         
         // Icons
         lucide.createIcons();
@@ -167,7 +171,7 @@ const app = {
         this.filterItems();
         
         // Mettre à jour le dashboard
-        Dashboard.update(this.hotels, this.restaurants, this.activities);
+        Dashboard.update(this.hotels, this.restaurants, this.activities, this.flights);
     },
 
     updateCityFilter() {
@@ -182,7 +186,7 @@ const app = {
         
         // Collecter toutes les villes UTILISÉES dans les activités
         const usedCities = new Set();
-        [...this.hotels, ...this.restaurants, ...this.activities].forEach(item => {
+        [...this.hotels, ...this.restaurants, ...this.activities, ...this.flights].forEach(item => {
             if (item.city) usedCities.add(item.city);
         });
         
@@ -231,7 +235,8 @@ const app = {
             ListView.render('hotelItems', cached.hotels);
             ListView.render('restaurantItems', cached.restaurants);
             ListView.render('activityItems', cached.activities);
-            CalendarView.render(cached.hotels, cached.restaurants, cached.activities);
+            ListView.render('flightItems', cached.flights);
+            CalendarView.render(cached.hotels, cached.restaurants, cached.activities, cached.flights);
             
             lucide.createIcons();
             return;
@@ -253,14 +258,16 @@ const app = {
         const filteredHotels = SortManager.applySorting(this.hotels.filter(filterItem));
         const filteredRestaurants = SortManager.applySorting(this.restaurants.filter(filterItem));
         const filteredActivities = SortManager.applySorting(this.activities.filter(filterItem));
+        const filteredFlights = SortManager.applySorting(this.flights.filter(filterItem));
 
         // NOUVEAU : Sauvegarder en cache
-        FilterCache.save(searchTerm, cityFilter, sortBy, filteredHotels, filteredRestaurants, filteredActivities);
+        FilterCache.save(searchTerm, cityFilter, sortBy, filteredHotels, filteredRestaurants, filteredActivities, filteredFlights);
 
         ListView.render('hotelItems', filteredHotels);
         ListView.render('restaurantItems', filteredRestaurants);
         ListView.render('activityItems', filteredActivities);
-        CalendarView.render(filteredHotels, filteredRestaurants, filteredActivities);
+        ListView.render('flightItems', filteredFlights);
+        CalendarView.render(filteredHotels, filteredRestaurants, filteredActivities, filteredFlights);
         
         lucide.createIcons();
     },
@@ -284,21 +291,52 @@ const app = {
         }
         
         const type = document.getElementById('itemType').value;
-        const activityData = {
-            name: document.getElementById('itemName').value,
-            city: document.getElementById('itemCity').value,
-            category: document.getElementById('category').value,
-            price: parseInt(document.getElementById('price').value) || 0,
-            date: document.getElementById('reservationDate').value,
-            endDate: type === 'hotel' ? document.getElementById('endDate').value : '',
-            priority: document.getElementById('priority').value,
-            googleMapsUrl: document.getElementById('googleMapsUrl').value,
-            photoUrl: document.getElementById('photoUrl').value,
-            notes: document.getElementById('notes').value,
-            isBooked: document.getElementById('isBooked').checked,
-            bookingUrl: document.getElementById('bookingUrl').value,
-            type: type
-        };
+
+        let activityData;
+
+        if (type === 'flight') {
+            // Données spécifiques aux vols
+            activityData = {
+                name: document.getElementById('itemName').value,
+                city: document.getElementById('itemCity').value || 'Vol',
+                type: 'flight',
+                flightNumber: document.getElementById('flightNumber').value,
+                airline: document.getElementById('airline').value,
+                departureAirport: document.getElementById('departureAirport').value,
+                departureTerminal: document.getElementById('departureTerminal').value,
+                departureCity: document.getElementById('departureCity').value,
+                departureDate: document.getElementById('departureDate').value,
+                arrivalAirport: document.getElementById('arrivalAirport').value,
+                arrivalTerminal: document.getElementById('arrivalTerminal').value,
+                arrivalCity: document.getElementById('arrivalCity').value,
+                arrivalDate: document.getElementById('arrivalDate').value,
+                bookingRef: document.getElementById('bookingRef').value,
+                price: parseInt(document.getElementById('price').value) || 0,
+                bookingUrl: document.getElementById('bookingUrl').value,
+                isBooked: document.getElementById('isBooked').checked,
+                layovers: ModalManager.getLayovers(),
+                notes: document.getElementById('notes')?.value || '',
+                // Pour le calendrier, utiliser departureDate comme date principale
+                date: document.getElementById('departureDate').value
+            };
+        } else {
+            // Données pour hotel, restaurant, activity
+            activityData = {
+                name: document.getElementById('itemName').value,
+                city: document.getElementById('itemCity').value,
+                category: document.getElementById('category').value,
+                price: parseInt(document.getElementById('price').value) || 0,
+                date: document.getElementById('reservationDate').value,
+                endDate: type === 'hotel' ? document.getElementById('endDate').value : '',
+                priority: document.getElementById('priority').value,
+                googleMapsUrl: document.getElementById('googleMapsUrl').value,
+                photoUrl: document.getElementById('photoUrl').value,
+                notes: document.getElementById('notes').value,
+                isBooked: document.getElementById('isBooked').checked,
+                bookingUrl: document.getElementById('bookingUrl').value,
+                type: type
+            };
+        }
 
         if (ModalManager.currentEditId) {
             // Update
@@ -313,6 +351,9 @@ const app = {
                 } else if (type === 'restaurant') {
                     index = this.restaurants.findIndex(r => r.id === ModalManager.currentEditId);
                     items = this.restaurants;
+                } else if (type === 'flight') {
+                    index = this.flights.findIndex(f => f.id === ModalManager.currentEditId);
+                    items = this.flights;
                 } else {
                     index = this.activities.findIndex(a => a.id === ModalManager.currentEditId);
                     items = this.activities;
@@ -321,6 +362,11 @@ const app = {
                 activityData.id = ModalManager.currentEditId;
                 activityData.isDone = items[index].isDone || false;
                 items[index] = new Activity(activityData);
+
+                if (type === 'flight') {
+                    console.log('🔍 Updated flight at index', index, ':', items[index]);
+                    console.log('🔍 All flights after update:', this.flights);
+                }
             } else {
                 alert('Erreur: ' + result.error);
             }
@@ -336,6 +382,8 @@ const app = {
                     this.hotels.push(new Activity(activityData));
                 } else if (type === 'restaurant') {
                     this.restaurants.push(new Activity(activityData));
+                } else if (type === 'flight') {
+                    this.flights.push(new Activity(activityData));
                 } else {
                     this.activities.push(new Activity(activityData));
                 }
@@ -344,9 +392,24 @@ const app = {
             }
         }
 
+        // Vider les escales après sauvegarde
+        ModalManager.clearLayovers();
+
         this.renderAll();
-        Dashboard.update(this.hotels, this.restaurants, this.activities);
+        Dashboard.update(this.hotels, this.restaurants, this.activities, this.flights);
+
+        console.log('🔍 Flight après save:', type === 'flight' ? activityData : 'not a flight');
+        console.log('🔍 Flights array:', this.flights);
+
         ModalManager.close('formModal');
+
+        setTimeout(() => {
+            if (type === 'flight') {
+                console.log('🔄 Force re-render flight items');
+                ListView.render('flightItems', this.flights);
+                lucide.createIcons();
+            }
+        }, 150);
     },
 
     async toggleDone(id, type, event) {
@@ -362,6 +425,8 @@ const app = {
             items = this.hotels;
         } else if (type === 'restaurant') {
             items = this.restaurants;
+        } else if (type === 'flight') {
+            items = this.flights;
         } else {
             items = this.activities;
         }
@@ -375,7 +440,7 @@ const app = {
             await FirebaseService.updateActivity(currentTripId, id, { isDone: item.isDone });
 
             this.renderAll();
-            Dashboard.update(this.hotels, this.restaurants, this.activities);
+            Dashboard.update(this.hotels, this.restaurants, this.activities, this.flights);
         }
     },
 
@@ -385,6 +450,8 @@ const app = {
             items = this.hotels;
         } else if (type === 'restaurant') {
             items = this.restaurants;
+        } else if (type === 'flight') {
+            items = this.flights;
         } else {
             items = this.activities;
         }
@@ -420,12 +487,14 @@ const app = {
                 this.hotels = this.hotels.filter(h => h.id !== itemId);
             } else if (itemType === 'restaurant') {
                 this.restaurants = this.restaurants.filter(r => r.id !== itemId);
+            } else if (itemType === 'flight') {
+                this.flights = this.flights.filter(f => f.id !== itemId);
             } else {
                 this.activities = this.activities.filter(a => a.id !== itemId);
             }
 
             this.renderAll();
-            Dashboard.update(this.hotels, this.restaurants, this.activities);
+            Dashboard.update(this.hotels, this.restaurants, this.activities, this.flights);
             ModalManager.close('detailModal');
         } else {
             alert('Erreur: ' + result.error);
@@ -448,6 +517,8 @@ const app = {
             items = this.hotels;
         } else if (itemType === 'restaurant') {
             items = this.restaurants;
+        } else if (itemType === 'flight') {
+            items = this.flights;
         } else {
             items = this.activities;
         }
@@ -476,12 +547,14 @@ const app = {
                 this.hotels = this.hotels.filter(h => h.id !== id);
             } else if (type === 'restaurant') {
                 this.restaurants = this.restaurants.filter(r => r.id !== id);
+            } else if (type === 'flight') {
+                this.flights = this.flights.filter(f => f.id !== id);
             } else {
                 this.activities = this.activities.filter(a => a.id !== id);
             }
             
             this.renderAll();
-            Dashboard.update(this.hotels, this.restaurants, this.activities);
+            Dashboard.update(this.hotels, this.restaurants, this.activities, this.flights);
         } else {
             alert('Erreur: ' + result.error);
         }
@@ -494,6 +567,7 @@ const app = {
             hotels: this.hotels,
             restaurants: this.restaurants,
             activities: this.activities,
+            flights: this.flights,
             exportDate: new Date().toISOString()
         };
         
@@ -523,7 +597,7 @@ const app = {
             try {
                 const data = JSON.parse(e.target.result);
                 
-                if (!confirm(`Importer ${data.hotels?.length || 0} hôtels, ${data.restaurants?.length || 0} restaurants et ${data.activities?.length || 0} activités ? Cela ajoutera ces éléments au voyage actuel.`)) {
+                if (!confirm(`Importer ${data.hotels?.length || 0} hôtels, ${data.restaurants?.length || 0} restaurants, ${data.activities?.length || 0} activités, et ${data.flights?.length || 0} vols ? Cela ajoutera ces éléments au voyage actuel.`)) {
                     return;
                 }
 
@@ -531,6 +605,7 @@ const app = {
                 const importedHotels = data.hotels || [];
                 const importedRestaurants = data.restaurants || [];
                 const importedActivities = data.activities || [];
+                const importedFlights = data.flights || [];
 
                 // Ajouter à Firestore
                 for (const hotel of importedHotels) {
@@ -548,14 +623,20 @@ const app = {
                     await FirebaseService.addActivity(currentTripId, activity);
                 }
 
+                for (const flight of importedFlights) {
+                    delete flight.id;
+                    await FirebaseService.addActivity(currentTripId, flight);
+                }
+
                 // Recharger
                 await loadTrip();
                 this.hotels = hotels;
                 this.restaurants = restaurants;
                 this.activities = activities;
+                this.flights = flights;
 
                 this.renderAll();
-                Dashboard.update(this.hotels, this.restaurants, this.activities);
+                Dashboard.update(this.hotels, this.restaurants, this.activities, this.flights);
 
                 ModalManager.close('settingsModal');
                 alert('Import réussi !');
@@ -584,7 +665,7 @@ const app = {
         }
 
         // Supprimer toutes les activités
-        const allActivities = [...this.hotels, ...this.restaurants, ...this.activities];
+        const allActivities = [...this.hotels, ...this.restaurants, ...this.activities, ...this.flights];
         for (const activity of allActivities) {
             await FirebaseService.deleteActivity(currentTripId, activity.id);
         }
@@ -592,8 +673,9 @@ const app = {
         this.hotels = [];
         this.restaurants = [];
         this.activities = [];
+        this.flights = [];
         this.renderAll();
-        Dashboard.update(this.hotels, this.restaurants, this.activities);
+        Dashboard.update(this.hotels, this.restaurants, this.activities, this.flights);
         
         ModalManager.close('settingsModal');
         alert('Toutes les données ont été supprimées.');
@@ -661,6 +743,8 @@ function openQuickDateModal(id, type, event) {
         items = app.hotels;
     } else if (type === 'restaurant') {
         items = app.restaurants;
+    } else if (type === 'flight') {
+        items = app.flights;
     } else {
         items = app.activities;
     }
@@ -748,6 +832,8 @@ async function saveQuickDate() {
             items = app.hotels;
         } else if (type === 'restaurant') {
             items = app.restaurants;
+        } else if (type === 'flight') {
+            items = app.flights;
         } else {
             items = app.activities;
         }
@@ -762,7 +848,7 @@ async function saveQuickDate() {
         
         // Re-render
         app.renderAll();
-        Dashboard.update(app.hotels, app.restaurants, app.activities);
+        Dashboard.update(app.hotels, app.restaurants, app.activities, app.flights);
 
         // Fermer la modal
         closeModal('quickDateModal');
@@ -795,6 +881,8 @@ async function removeQuickDate() {
             items = app.hotels;
         } else if (type === 'restaurant') {
             items = app.restaurants;
+        } else if (type === 'flight') {
+            items = app.flights;
         } else {
             items = app.activities;
         }
@@ -809,7 +897,7 @@ async function removeQuickDate() {
         
         // Re-render
         app.renderAll();
-        Dashboard.update(app.hotels, app.restaurants, app.activities);
+        Dashboard.update(app.hotels, app.restaurants, app.activities, app.flights);
         
         // Fermer la modal
         closeModal('quickDateModal');

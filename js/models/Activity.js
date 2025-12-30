@@ -14,7 +14,19 @@ class Activity {
         bookingUrl = null,
         isDone = false,
         id = null,
-        type = 'activity'
+        type = 'activity',
+        flightNumber = null,
+        airline = null,
+        departureAirport = null,
+        departureTerminal = null,
+        departureCity = null,
+        departureDate = null,
+        arrivalAirport = null,
+        arrivalTerminal = null,
+        arrivalCity = null,
+        arrivalDate = null,
+        layovers = [],
+        bookingRef = null
     }) {
         this.id = id || this.generateId();
         this.name = name;
@@ -31,6 +43,18 @@ class Activity {
         this.bookingUrl = bookingUrl;
         this.isDone = isDone;
         this.type = type;
+        this.flightNumber = flightNumber;
+        this.airline = airline;
+        this.departureAirport = departureAirport;
+        this.departureTerminal = departureTerminal;
+        this.departureCity = departureCity;
+        this.departureDate = departureDate;
+        this.arrivalAirport = arrivalAirport;
+        this.arrivalTerminal = arrivalTerminal;
+        this.arrivalCity = arrivalCity;
+        this.arrivalDate = arrivalDate;
+        this.layovers = layovers || [];
+        this.bookingRef = bookingRef;
     }
 
     generateId() {

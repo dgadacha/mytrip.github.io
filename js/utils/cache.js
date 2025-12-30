@@ -22,14 +22,15 @@ const FilterCache = {
     },
     
     // Sauvegarder les résultats
-    save(searchQuery, cityFilter, sortBy, hotels, restaurants, activities) {
+    save(searchQuery, cityFilter, sortBy, hotels, restaurants, activities, flights) {
         const key = this.getKey(searchQuery, cityFilter, sortBy);
-        const totalItems = hotels.length + restaurants.length + activities.length;
+        const totalItems = hotels.length + restaurants.length + activities.length + flights.length;
         
         this.cache.set(key, {
             hotels: [...hotels],
             restaurants: [...restaurants],
-            activities: [...activities]
+            activities: [...activities],
+            flights: [...flights]  // NOUVEAU
         });
         
         console.log(`💾 Cache SAVE: "${key}" (${totalItems} items, cache size: ${this.cache.size})`);
@@ -51,7 +52,8 @@ const FilterCache = {
             return {
                 hotels: [...cached.hotels],
                 restaurants: [...cached.restaurants],
-                activities: [...cached.activities]
+                activities: [...cached.activities],
+                flights: [...cached.flights]  // NOUVEAU
             };
         }
         
