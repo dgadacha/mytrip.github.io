@@ -2,7 +2,7 @@ const CalendarView = {
     currentDayInView: null,
     savedScrollPosition: null,  // NOUVEAU : Sauvegarder la position
     
-    render(hotels, restaurants, activities) {
+    render(hotels, restaurants, activities, flights) {
         const container = document.getElementById('calendarView');
         const currencySymbol = currentTrip?.currencySymbol || '¥';
         
@@ -41,7 +41,8 @@ const CalendarView = {
         const allItems = [
             ...expandedHotels,
             ...restaurants.filter(item => item.date),
-            ...activities.filter(item => item.date)
+            ...activities.filter(item => item.date),
+            ...flights.filter(item => item.date)
         ];
         
         if (allItems.length === 0) {
@@ -81,6 +82,10 @@ const CalendarView = {
                 // Hôtels toujours en premier
                 if (a.type === 'hotel' && b.type !== 'hotel') return -1;
                 if (a.type !== 'hotel' && b.type === 'hotel') return 1;
+
+                // Vols en deuxième
+                if (a.type === 'flight' && b.type !== 'flight') return -1;
+                if (a.type !== 'flight' && b.type === 'flight') return 1;
                 
                 // Si même type, trier par heure
                 const dateA = new Date(a.date);
@@ -206,7 +211,11 @@ const CalendarView = {
                         
                         ${priorityBadge}
                         
-                        ${item.photoUrl ? `
+                        ${item.type === 'flight' ? `
+                            <div class="timeline-card-photo-placeholder" style="background: linear-gradient(135deg, #007AFF22 0%, #007AFF11 100%);">
+                                <i data-lucide="plane" style="color: #007AFF;"></i>
+                            </div>
+                        ` : item.photoUrl ? `
                             <img src="${item.photoUrl}" 
                                  alt="${item.name}" 
                                  class="timeline-card-photo" 
@@ -223,7 +232,13 @@ const CalendarView = {
                         <div class="timeline-card-content">
                             <div class="timeline-time">${timeString}</div>
                             <div class="timeline-card-title">${itemName}</div>
-                            <div class="timeline-card-city">${item.city}</div>
+                            ${item.type === 'flight' ? `
+                                <div class="timeline-card-city">
+                                    ${item.departureAirport || item.departureCity || ''} → ${item.arrivalAirport || item.arrivalCity || ''}
+                                </div>
+                            ` : `
+                                <div class="timeline-card-city">${item.city}</div>
+                            `}
                             ${item.notes ? `
                                 <div class="timeline-card-notes">${item.notes}</div>
                             ` : ''}
