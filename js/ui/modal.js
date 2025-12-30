@@ -19,6 +19,8 @@ const ModalManager = {
         
         form.reset();
         this.currentEditId = null;
+        // Vider les escales à chaque ouverture
+        this.clearLayovers();
 
         if (type === 'hotel') {
             modalTitle.textContent = item ? 'Modifier Hôtel' : 'Ajouter un Hôtel';
@@ -42,6 +44,14 @@ const ModalManager = {
             // Masquer la date de fin
             endDateGroup.style.display = 'none';
             
+        } else if (type === 'flight') {
+            modalTitle.textContent = item ? 'Modifier Vol' : 'Ajouter un Vol';
+            document.getElementById('itemType').value = 'flight';
+            
+            // Masquer les champs standards, afficher champs flight
+            this.toggleFlightFields(true);
+            endDateGroup.style.display = 'none';
+            
         } else {
             modalTitle.textContent = item ? 'Modifier Activité' : 'Ajouter une Activité';
             categoryLabel.textContent = 'Catégorie';
@@ -50,8 +60,9 @@ const ModalManager = {
             document.getElementById('itemType').value = 'activity';
             document.getElementById('category').placeholder = 'Ex: Temple, Shopping, Observation...';
             
-            // Masquer la date de fin
+            // Masquer la date de fin et les champs flight
             endDateGroup.style.display = 'none';
+            this.toggleFlightFields(false);
         }
 
         if (item) {
@@ -67,6 +78,24 @@ const ModalManager = {
     
         modal.classList.add('active');
         lucide.createIcons();
+    },
+
+
+    toggleFlightFields(show) {
+        const flightFields = document.getElementById('flightFields');
+        const standardFields = ['category', 'priority', 'notes', 'reservationDate', 'googleMapsUrl', 'photoUrl'];
+        
+        if (flightFields) {
+            flightFields.style.display = show ? 'block' : 'none';
+        }
+        
+        // Masquer/afficher les champs standards
+        standardFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field && field.closest('.form-group')) {
+                field.closest('.form-group').style.display = show ? 'none' : 'block';
+            }
+        });
     },
 
     fillFormWithItem(item) {
@@ -88,6 +117,31 @@ const ModalManager = {
         if (item.type === 'hotel') {
             document.getElementById('endDateGroup').style.display = 'block';
         }
+
+        // Gérer les champs spécifiques aux vols
+        if (item.type === 'flight') {
+            this.toggleFlightFields(true);
+            document.getElementById('flightNumber').value = item.flightNumber || '';
+            document.getElementById('airline').value = item.airline || '';
+            document.getElementById('departureAirport').value = item.departureAirport || '';
+            document.getElementById('departureTerminal').value = item.departureTerminal || '';
+            document.getElementById('departureCity').value = item.departureCity || '';
+            document.getElementById('departureDate').value = item.departureDate || '';
+            document.getElementById('arrivalAirport').value = item.arrivalAirport || '';
+            document.getElementById('arrivalTerminal').value = item.arrivalTerminal || '';
+            document.getElementById('arrivalCity').value = item.arrivalCity || '';
+            document.getElementById('arrivalDate').value = item.arrivalDate || '';
+            document.getElementById('bookingRef').value = item.bookingRef || '';
+            
+            // Charger les escales
+            if (item.layovers && item.layovers.length > 0) {
+                item.layovers.forEach(layover => {
+                    this.addLayover(layover);
+                });
+            }
+        } else {
+            this.toggleFlightFields(false);
+        }
     },
 
     close(modalId) {
@@ -97,6 +151,10 @@ const ModalManager = {
         }
         this.currentEditId = null;
         this.currentDetailItem = null;
+        // Vider les escales quand on ferme le modal de formulaire
+        if (modalId === 'formModal') {
+            this.clearLayovers();
+        }
     },
 
     openDetail(item) {
@@ -141,6 +199,10 @@ const ModalManager = {
     },
 
     generateDetailHTML(item) {
+        if (item.type === 'flight') {
+            return this.generateFlightDetailHTML(item);
+        }
+
         let html = `
             <div class="detail-section">
                 <label>Ville</label>
@@ -272,6 +334,132 @@ const ModalManager = {
         return html;
     },
 
+    generateFlightDetailHTML(item) {
+        const currencySymbol = currentTrip?.currencySymbol || '¥';
+        
+        // Formater date complète
+        const formatFullDate = (dateStr) => {
+            if (!dateStr) return '';
+            return new Date(dateStr).toLocaleString('fr-FR', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+        
+        let html = `
+            <!-- Numéro de vol -->
+            ${item.flightNumber || item.airline ? `
+                <div class="detail-section">
+                    <label>Vol</label>
+                    <div class="value" style="font-size: 1.125rem; font-weight: 600;">
+                        ${item.airline || ''} ${item.flightNumber || ''}
+                    </div>
+                </div>
+            ` : ''}
+            
+            <!-- Timeline du vol -->
+            <div class="flight-timeline">
+                <!-- Départ -->
+                <div class="timeline-step">
+                    <div class="timeline-dot departure"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">Départ</div>
+                        <div class="timeline-location">
+                            ${item.departureAirport ? `<strong>${item.departureAirport}</strong>` : ''}
+                            ${item.departureTerminal ? ` Terminal ${item.departureTerminal}` : ''}
+                            ${item.departureCity ? ` - ${item.departureCity}` : ''}
+                        </div>
+                        ${item.departureDate ? `
+                            <div class="timeline-time">${formatFullDate(item.departureDate)}</div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <!-- Escales -->
+                ${item.layovers && item.layovers.length > 0 ? item.layovers.map((layover, index) => `
+                    <div class="timeline-step layover">
+                        <div class="timeline-dot layover"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Escale ${index + 1}</div>
+                            ${layover.flightNumber ? `
+                                <div class="timeline-flight-number">Vol ${layover.flightNumber}</div>
+                            ` : ''}
+                            <div class="timeline-location">
+                                ${layover.airport ? `<strong>${layover.airport}</strong>` : ''}
+                                ${layover.terminal ? ` Terminal ${layover.terminal}` : ''}
+                                ${layover.city ? ` - ${layover.city}` : ''}
+                            </div>
+                            ${layover.arrivalTime ? `
+                                <div class="timeline-time">Arrivée : ${formatFullDate(layover.arrivalTime)}</div>
+                            ` : ''}
+                            ${layover.departureTime ? `
+                                <div class="timeline-time">Départ : ${formatFullDate(layover.departureTime)}</div>
+                            ` : ''}
+                            ${layover.duration ? `
+                                <div class="timeline-duration">Durée d'escale : ${Math.floor(layover.duration / 60)}h${layover.duration % 60 > 0 ? (layover.duration % 60).toString().padStart(2, '0') : ''}</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('') : ''}
+                
+                <!-- Arrivée -->
+                <div class="timeline-step">
+                    <div class="timeline-dot arrival"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">Arrivée</div>
+                        <div class="timeline-location">
+                            ${item.arrivalAirport ? `<strong>${item.arrivalAirport}</strong>` : ''}
+                            ${item.arrivalTerminal ? ` Terminal ${item.arrivalTerminal}` : ''}
+                            ${item.arrivalCity ? ` - ${item.arrivalCity}` : ''}
+                        </div>
+                        ${item.arrivalDate ? `
+                            <div class="timeline-time">${formatFullDate(item.arrivalDate)}</div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Autres infos -->
+            ${item.price ? `
+                <div class="detail-section">
+                    <label>Prix</label>
+                    <div class="value">${item.price.toLocaleString()}${currencySymbol}</div>
+                </div>
+            ` : ''}
+            
+            ${item.bookingRef ? `
+                <div class="detail-section">
+                    <label>Référence de réservation</label>
+                    <div class="value" style="font-family: 'SF Mono', monospace; letter-spacing: 0.5px;">${item.bookingRef}</div>
+                </div>
+            ` : ''}
+            
+            ${item.bookingUrl ? `
+                <div class="detail-section">
+                    <label>Réservation</label>
+                    <div class="value">
+                        <a href="${item.bookingUrl}" target="_blank" class="address-link">
+                            🔗 Lien de réservation
+                        </a>
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${item.notes ? `
+                <div class="detail-section">
+                    <label>Notes</label>
+                    <div class="value" style="white-space: pre-line;">${item.notes}</div>
+                </div>
+            ` : ''}
+        `;
+        
+        return html;
+    },
+
     extractTikTokVideoId(url) {
         const match = url.match(/\/video\/(\d+)/);
         return match ? match[1] : null;
@@ -296,7 +484,119 @@ const ModalManager = {
                 lucide.createIcons();
             }
         }
-    }
+    },
+
+    // Gestion des escales
+    layoverCounter: 0,
+
+    addLayover(layoverData = null) {
+        this.layoverCounter++;
+        const container = document.getElementById('layoversContainer');
+        if (!container) return;
+        
+        const layoverId = this.layoverCounter;
+        
+        const layoverHTML = `
+            <div class="layover-item" id="layover-${layoverId}" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h5 style="margin: 0;">Escale ${layoverId}</h5>
+                    <button type="button" class="btn" onclick="ModalManager.removeLayover(${layoverId})" style="padding: 4px 8px; background: var(--error); color: white;">
+                        <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Numéro de vol</label>
+                    <input type="text" id="layover-flight-${layoverId}" placeholder="Ex: AF456" value="${layoverData?.flightNumber || ''}">
+                </div>
+
+                <div class="form-group">
+                    <label>Aéroport</label>
+                    <input type="text" id="layover-airport-${layoverId}" placeholder="Ex: DXB" value="${layoverData?.airport || ''}">
+                </div>
+
+                <div class="form-group">
+                    <label>Terminal (optionnel)</label>
+                    <input type="text" id="layover-terminal-${layoverId}" placeholder="Ex: 2E" value="${layoverData?.terminal || ''}">
+                </div>
+                
+                <div class="form-group">
+                    <label>Ville</label>
+                    <input type="text" id="layover-city-${layoverId}" placeholder="Ex: Dubai" value="${layoverData?.city || ''}">
+                </div>
+                
+                <div class="form-group">
+                    <label>Arrivée</label>
+                    <input type="datetime-local" id="layover-arrival-${layoverId}" value="${layoverData?.arrivalTime || ''}">
+                </div>
+                
+                <div class="form-group">
+                    <label>Départ</label>
+                    <input type="datetime-local" id="layover-departure-${layoverId}" value="${layoverData?.departureTime || ''}">
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', layoverHTML);
+        
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    },
+
+    removeLayover(layoverId) {
+        const layover = document.getElementById(`layover-${layoverId}`);
+        if (layover) {
+            layover.remove();
+        }
+    },
+
+    getLayovers() {
+        const layovers = [];
+        const container = document.getElementById('layoversContainer');
+        if (!container) return layovers;
+        
+        const layoverItems = container.querySelectorAll('.layover-item');
+        layoverItems.forEach((item) => {
+            const id = item.id.replace('layover-', '');
+            const flightNumber = document.getElementById(`layover-flight-${id}`)?.value;
+            const airport = document.getElementById(`layover-airport-${id}`)?.value;
+            const terminal = document.getElementById(`layover-terminal-${id}`)?.value;
+            const city = document.getElementById(`layover-city-${id}`)?.value;
+            const arrivalTime = document.getElementById(`layover-arrival-${id}`)?.value;
+            const departureTime = document.getElementById(`layover-departure-${id}`)?.value;
+            
+            if (airport || city) {
+                // Calculer la durée en minutes
+                let duration = 0;
+                if (arrivalTime && departureTime) {
+                    const arrival = new Date(arrivalTime);
+                    const departure = new Date(departureTime);
+                    duration = Math.round((departure - arrival) / 1000 / 60);
+                }
+                
+                layovers.push({
+                    flightNumber,
+                    airport,
+                    terminal,
+                    city,
+                    arrivalTime,
+                    departureTime,
+                    duration
+                });
+            }
+        });
+        
+        return layovers;
+    },
+
+    clearLayovers() {
+        const container = document.getElementById('layoversContainer');
+        if (container) {
+            container.innerHTML = '';
+        }
+        this.layoverCounter = 0;
+    },
 };
 
 // Fonctions globales pour être appelées depuis le HTML (déjà définies dans trip.js)

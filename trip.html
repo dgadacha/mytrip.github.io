@@ -53,6 +53,10 @@
                 <div class="number" id="totalActivities">0</div>
             </div>
             <div class="stat-card">
+                <h3>Vols</h3>
+                <div class="number" id="totalFlights">0</div>
+            </div>
+            <div class="stat-card">
                 <div class="label">Budget</div>
                 <div class="number" id="totalBudget">0¥</div>
                 <div class="stat-subtext" id="totalEstimatedBudget">Estimé : 0¥</div>
@@ -95,6 +99,10 @@
                 <i data-lucide="compass" style="width: 16px; height: 16px; margin-right: 6px;"></i>
                 Activités
             </button>
+            <button class="tab" onclick="switchTab('flights')">
+                <i data-lucide="plane" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Vols
+            </button>
             <button class="tab" onclick="switchTab('calendar')">
                 <i data-lucide="calendar" style="width: 16px; height: 16px; margin-right: 6px;"></i>
                 Calendrier
@@ -114,6 +122,10 @@
             <div class="items-list" id="activityItems"></div>
         </div>
 
+        <div id="flightsContent" class="content-section">
+            <div class="items-list" id="flightItems"></div>
+        </div>
+
         <div id="calendarContent" class="content-section">
             <div id="calendarView"></div>
         </div>
@@ -131,6 +143,10 @@
             <button class="bottom-nav-item" onclick="bottomNavSwitch('activities')">
                 <i data-lucide="compass" class="icon"></i>
                 <span>Activités</span>
+            </button>
+            <button class="bottom-nav-item" onclick="bottomNavSwitch('flights')">
+                <i data-lucide="plane" class="icon"></i>
+                <span>Vols</span>
             </button>
             <button class="bottom-nav-item" onclick="bottomNavSwitch('calendar')">
                 <i data-lucide="calendar" class="icon"></i>
@@ -155,6 +171,10 @@
             <button class="fab-option" onclick="openForm('activity')">
                 <i data-lucide="compass" style="width: 16px; height: 16px; margin-right: 6px;"></i>
                 Activité
+            </button>
+            <button class="fab-option" onclick="openForm('flight')">
+                <i data-lucide="plane" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Vol
             </button>
         </div>
 
@@ -245,6 +265,79 @@
                                 <input type="checkbox" id="isBooked">
                                 <span id="bookedLabel">Réservé</span>
                             </label>
+                        </div>
+
+                        <!-- Champs spécifiques aux vols -->
+                        <div id="flightFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="flightNumber">Numéro de vol</label>
+                                <input type="text" id="flightNumber" placeholder="Ex: AF275">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="airline">Compagnie aérienne</label>
+                                <input type="text" id="airline" placeholder="Ex: Air France">
+                            </div>
+
+                            <h4 style="margin-top: 20px;">Départ</h4>
+                            
+                            <div class="form-group">
+                                <label for="departureAirport">Aéroport de départ</label>
+                                <input type="text" id="departureAirport" placeholder="Code (ex: CDG)">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="departureTerminal">Terminal de départ (optionnel)</label>
+                                <input type="text" id="departureTerminal" placeholder="Ex: 2E">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="departureCity">Ville de départ</label>
+                                <input type="text" id="departureCity" placeholder="Ex: Paris">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="departureDate">Date et heure de départ</label>
+                                <input type="datetime-local" id="departureDate">
+                            </div>
+
+                            <h4 style="margin-top: 20px;">Arrivée</h4>
+
+                            <div class="form-group">
+                                <label for="arrivalAirport">Aéroport d'arrivée</label>
+                                <input type="text" id="arrivalAirport" placeholder="Code (ex: NRT)">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="arrivalTerminal">Terminal d'arrivée (optionnel)</label>
+                                <input type="text" id="arrivalTerminal" placeholder="Ex: 1">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="arrivalCity">Ville d'arrivée</label>
+                                <input type="text" id="arrivalCity" placeholder="Ex: Tokyo">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="arrivalDate">Date et heure d'arrivée</label>
+                                <input type="datetime-local" id="arrivalDate">
+                            </div>
+
+                            <h4 style="margin-top: 20px;">Escales</h4>
+                            
+                            <div id="layoversContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Escales ajoutées dynamiquement ici -->
+                            </div>
+
+                            <button type="button" class="btn" onclick="ModalManager.addLayover()" style="margin-top: 8px;">
+                                <i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                                Ajouter une escale
+                            </button>
+
+                            <div class="form-group">
+                                <label for="bookingRef">Référence de réservation</label>
+                                <input type="text" id="bookingRef" placeholder="Ex: ABC123">
+                            </div>
                         </div>
                     </form>
                 </div>

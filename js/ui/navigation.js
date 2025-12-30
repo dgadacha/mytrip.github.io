@@ -11,6 +11,7 @@ const NavigationManager = {
             'hotels': 'hotelsContent',
             'restaurants': 'restaurantsContent',
             'activities': 'activitiesContent',
+            'flights': 'flightsContent',
             'calendar': 'calendarContent'
         };
         
@@ -40,7 +41,7 @@ const NavigationManager = {
         // Trouver et activer le bon item
         const items = document.querySelectorAll('.bottom-nav-item');
         items.forEach((item, index) => {
-            const views = ['hotels', 'restaurants', 'activities', 'calendar'];
+            const views = ['hotels', 'restaurants', 'activities', 'flights', 'calendar'];
             if (views[index] === view) {
                 item.classList.add('active');
             }
@@ -53,6 +54,7 @@ const NavigationManager = {
             'hotels': 'hotelsContent',
             'restaurants': 'restaurantsContent',
             'activities': 'activitiesContent',
+            'flights': 'flightsContent',
             'calendar': 'calendarContent'
         };
         
