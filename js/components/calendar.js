@@ -79,13 +79,13 @@ const CalendarView = {
 
             // Trier les items : hôtels d'abord, puis par heure croissante
             const dayItems = itemsByDate[dateKey].sort((a, b) => {
-                // Hôtels toujours en premier
-                if (a.type === 'hotel' && b.type !== 'hotel') return -1;
-                if (a.type !== 'hotel' && b.type === 'hotel') return 1;
-
-                // Vols en deuxième
+                // Vol en premier
                 if (a.type === 'flight' && b.type !== 'flight') return -1;
                 if (a.type !== 'flight' && b.type === 'flight') return 1;
+
+                // Hôtels en second
+                if (a.type === 'hotel' && b.type !== 'hotel') return -1;
+                if (a.type !== 'hotel' && b.type === 'hotel') return 1;
                 
                 // Si même type, trier par heure
                 const dateA = new Date(a.date);
